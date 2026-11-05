@@ -147,9 +147,10 @@
   Ops.updateLock = function () {
     var b = document.getElementById("lockBtn");
     if (b) {
-      b.textContent = Ops.unlocked() ? "Editing on · Lock" : "🔒 Staff PIN to edit";
+      b.textContent = Ops.unlocked() ? "Unlocked · Lock" : "🔒 Staff PIN";
       b.classList.toggle("on", Ops.unlocked());
     }
+    try { window.dispatchEvent(new CustomEvent("ops-lock-change", { detail: { unlocked: Ops.unlocked() } })); } catch (e) {}
     Ops.onLockChange();
   };
   Ops.bindLock = function () {
@@ -181,34 +182,36 @@
   };
 
   // ---------- data loading + live updates ----------
-  // tables: { ops_ros: "sort" }  -> Ops.load resolves { ops_ros: [...] }
-  Ops.load = async function (tables) {
-    var names = Object.keys(tables);
-    var results = await Promise.all(names.map(function (t) { return Ops.sb.from(t).select("*").order(tables[t]); }));
-    var out = {};
-    results.forEach(function (r, i) { if (r.error) throw new Error(r.error.message); out[names[i]] = r.data; });
-    return out;
+  // All staff data is private, so pages load it through PIN-checked functions
+  // and poll a cheap version check every few seconds instead of realtime.
+  Ops.poll = function (scope, onChange) {
+    var last = null, busy = false;
+    async function tick(force) {
+      if (busy || !Ops.unlocked() || (document.hidden && !force)) return;
+      busy = true;
+      try {
+        var res = await Ops.sb.rpc("ops_version", { p_pin: Ops.pin, p_scope: scope });
+        if (res.error) throw res.error;
+        if (!res.data.ok) { if (res.data.error === "bad_pin") Ops.lock(); Ops.setConn(false, "Locked"); return; }
+        Ops.setConn(true, "Live");
+        if (force || res.data.v !== last) { last = res.data.v; await onChange(); }
+      } catch (e) { Ops.setConn(false, "Offline, retrying…"); }
+      finally { busy = false; }
+    }
+    setInterval(tick, 4000);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) tick(); });
+    return { now: function () { return tick(true); }, reset: function () { last = null; } };
   };
-  Ops.subscribe = function (name, tables, onChange, onReconnect) {
-    var ch = Ops.sb.channel(name);
-    tables.forEach(function (t) {
-      ch.on("postgres_changes", { event: "*", schema: "public", table: t }, function (p) { onChange(t, p); });
-    });
-    ch.subscribe(function (status) {
-      var live = status === "SUBSCRIBED";
-      Ops.setConn(live);
-      if (live && onReconnect) onReconnect();
-    });
-    document.addEventListener("visibilitychange", function () { if (!document.hidden && onReconnect) onReconnect(); });
-    setInterval(function () { if (!document.hidden && onReconnect) onReconnect(); }, 60000);
-    return ch;
+  // Keep the same objects for rows that still exist, so in-progress edits stay attached.
+  Ops.merge = function (oldRows, newRows) {
+    var byId = {};
+    oldRows.forEach(function (r) { byId[r.id] = r; });
+    return newRows.map(function (n) { return byId[n.id] ? Object.assign(byId[n.id], n) : n; });
   };
-  // Apply a realtime change to an array of rows (by id).
-  Ops.applyChange = function (rows, payload) {
-    if (payload.eventType === "DELETE") return rows.filter(function (r) { return r.id !== payload.old.id; });
-    var row = payload.new, i = rows.findIndex(function (r) { return r.id === row.id; });
-    if (i >= 0) rows[i] = Object.assign(rows[i], row); else rows.push(row);
-    return rows;
+  Ops.lockedHtml = function (what) {
+    return '<section class="panel" style="text-align:center;padding:36px 16px"><div style="font-size:2rem">🔒</div>' +
+      '<h2 style="margin:8px 0 6px">Staff only</h2><p class="muted" style="margin:0 0 16px">Enter the staff PIN to see ' + Ops.esc(what) + '. You only need to do this once on this device.</p>' +
+      '<button class="btn primary" data-act="unlock">Enter staff PIN</button></section>';
   };
 
   // Don't redraw under someone's fingers while they type.
