@@ -147,7 +147,25 @@ tr.me td { background: var(--a-soft); }
 .subnav button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
 .notice { padding: 12px 14px; border-radius: 8px; background: var(--warn-soft); color: var(--ink); }
 @media (prefers-reduced-motion: no-preference) { .toast { animation: rise .18s ease-out; } @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } } }
-</style>
+ <link rel="stylesheet" href="/theme.css">
+ <script src="/site-config.js"></script>
+ <script src="/theme.js"></script>
+ <style>
+ :root, :root[data-theme] {
+   --bg: var(--t-bg); --surface: var(--t-surface); --sunk: var(--t-surface-2); --ink: var(--t-ink); --muted: var(--t-muted); --line: var(--t-line);
+   --accent: var(--t-accent); --accent-ink: var(--t-accent-ink);
+   --go: var(--t-good); --go-soft: color-mix(in srgb, var(--t-good) 16%, var(--t-surface));
+   --warn: var(--t-warn); --warn-soft: color-mix(in srgb, var(--t-warn) 15%, var(--t-surface));
+   --stop: var(--t-danger); --stop-soft: color-mix(in srgb, var(--t-danger) 16%, var(--t-surface));
+   --a: var(--t-side-a); --a-soft: color-mix(in srgb, var(--t-side-a) 16%, var(--t-surface));
+   --b: var(--t-side-b); --b-soft: color-mix(in srgb, var(--t-side-b) 16%, var(--t-surface));
+   --display: var(--t-display); --body: var(--t-body);
+   --head: var(--t-bg-deep); --head-ink: var(--t-ink);
+   color-scheme: dark;
+ }
+ header.top { background-image: var(--t-pattern); border-bottom: 2px solid var(--t-accent); }
+ .brand h1 { color: var(--t-highlight); }
+ </style>
 </head>
 <body>
 <header class="top">
