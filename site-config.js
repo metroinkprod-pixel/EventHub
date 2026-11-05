@@ -10,6 +10,10 @@ window.HUB = {
     sheetCsvURL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxJHWk7ezAlQqyBteElG9YFFL3Ut_napJK-PW6Mjg4NeHvcoPdkFYEg18lAncZL8Fq07A_sGbmVXX4/pub?gid=1526195846&single=true&output=csv",
     footnote: "Schedule is subject to bracket performance. Times Times assume every map in a set is played."
   },
+         // Map list from a Google Sheet (same "Publish to web" CSV steps). Leave "" to use maps/index.html as written.
+   maps: {
+     sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRd78H5aMviESTcSKAd4wxECqMh390r7u02SrWPDAadQS6U4ONQX-n3tONb1G7iGw6OYzca4wb8wXuC/pub?gid=1656499915&single=true&output=csv"
+   },
   // Supabase project for Run of Show + Check-in (NOT the matchmaker's project).
   // Supabase > Project Settings > API: Project URL and the anon / publishable key.
   // The anon key is meant to be public; edits are protected by the staff PIN.
