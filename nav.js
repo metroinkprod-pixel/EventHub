@@ -1,7 +1,8 @@
 // Shared hub navigation. Add to any page with:
 //   <script src="/nav.js" defer></script>
 // Add data-hubnav="off" to <html> to hide it (e.g. on a TV display).
-// Staff links only show on devices that have entered the staff PIN.
+// Staff links only show on devices that have entered a PIN, and only the ones
+// that PIN's level can use (volunteers: My shifts + Check-in).
 (function () {
   if (document.documentElement.dataset.hubnav === "off") return;
   var LINKS = [
@@ -10,12 +11,15 @@
     { href: "/maps/",        label: "Maps" },
     { href: "/stations/",    label: "Stations" },
     { href: "/matchmaker/",  label: "Free play" },
-    { href: "/run-of-show/", label: "Run of show", staff: true },
-    { href: "/run-of-show/?view=mine", label: "My shifts", staff: true },
-    { href: "/checkin/",     label: "Check-in", staff: true },
-    { href: "/matchmaker/#staff", label: "Free play staff", staff: true }
+    { href: "/run-of-show/", label: "Run of show", staff: "staff" },
+    { href: "/run-of-show/?view=mine", label: "My shifts", staff: "volunteer" },
+    { href: "/checkin/",     label: "Check-in", staff: "volunteer" },
+    { href: "/matchmaker/#staff", label: "Free play staff", staff: "staff" }
   ];
-  function isStaff() { try { return !!localStorage.getItem("ops-pin"); } catch (e) { return false; } }
+  var RANK = { volunteer: 1, staff: 2, owner: 3 };
+  function level() {
+    try { return localStorage.getItem("ops-pin") ? (RANK[localStorage.getItem("ops-role")] || 1) : 0; } catch (e) { return 0; }
+  }
   var path = location.pathname.replace(/index\.html$/, "");
   if (path.length > 1 && !path.endsWith("/")) path += "/";
   var here = path + location.search + location.hash;
@@ -46,14 +50,18 @@
     if (l.staff && !addedSep) { var s = document.createElement("span"); s.className = "sep staff"; nav.appendChild(s); addedSep = true; }
     var a = document.createElement("a");
     a.href = l.href; a.textContent = l.label;
-    if (l.staff) a.className = "staff";
+    if (l.staff) { a.className = "staff"; a.dataset.need = l.staff; }
     var u = new URL(l.href, location.origin);
     if (u.pathname + u.search + u.hash === best) a.setAttribute("aria-current", "page");
     nav.appendChild(a);
   });
-  function sync() { nav.classList.toggle("is-staff", isStaff()); }
+  function sync() {
+    var lv = level();
+    nav.classList.toggle("is-staff", lv > 0);
+    nav.querySelectorAll("a.staff").forEach(function (a) { a.style.display = lv >= RANK[a.dataset.need] ? "" : "none"; });
+  }
   sync();
   window.addEventListener("ops-lock-change", sync);
-  window.addEventListener("storage", function (e) { if (e.key === "ops-pin") sync(); });
+  window.addEventListener("storage", function (e) { if (e.key === "ops-pin" || e.key === "ops-role") sync(); });
   document.body.insertBefore(nav, document.body.firstChild);
 })();

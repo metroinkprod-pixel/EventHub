@@ -53,30 +53,42 @@ The station board needs a small server function to talk to start.gg (so your tok
 **Option B, from your computer:** install Node, then in this folder run `npx vercel` and follow the prompts. Add the environment variables in the Vercel dashboard, then run `npx vercel --prod`.
 
 To test locally, copy `.env.example` to `.env`, fill it in, and run `npx vercel dev`.
-## 5. Stations Setup (Update via StartGG)
-a. Find the Event ID.
-  Go to developer.start.gg and open the API Explorer (sign in, and use your token if it asks).
-  Run this, with your own tournament and event names from the URL: Put this in the Query section.
-  Headers = { "Authorization": "Bearer yourtoken"}
-     query { event(slug: "tournament/gridlock-2026/event/4v4-tournament") { id name } }
-  
-  Returned ID is EventID
 
-b. Set the Vercel environment variables. Go to Vercel → your project → Settings → Environment Variables and add:
-
-  STARTGG_API_KEY: your new start.gg token (replace the one shared earlier, if you haven’t).
-  EVENT_ID: the number from step 1.
-  MAIN_STATION: the station number you’re using for mainstage, which shows as M on the board. It defaults to 6 if you leave it out.
-
-c. Redeploy, you're good to go.
-
-## 6. Day-of checklist
+## 5. Day-of checklist
 
 1. **The day before:** open the hub and the matchmaker once. Free Supabase projects pause after a week of no use.
 2. **Run of show:** open `/run-of-show/`, tap **Staff PIN to edit**, and check the **Now** view. Use **Preview another time** to rehearse.
 3. **Staff shifts:** each person opens **My shifts**, picks their name, and taps **Copy my link** to bookmark it.
 4. **Check-in:** in `/checkin/` → **Import & setup**, paste your team list from Sheets or use **Fetch teams from start.gg**. Then do a test check-in and **Clear all check-ins**.
 5. **Station board:** open `/stations/` on the TV and press F11 for full screen. It has no hub menu on purpose.
+
+## Schedule (fast for every event)
+
+The public schedule is drawn from a Google Sheet, so a new event (or a time change on the day) is just a sheet edit.
+
+1. In Google Sheets, **File → Import** `schedule/schedule-template.csv` (or make a tab with the columns **Day, Start, End, Event, Details, Type**).
+   - **Type**: `main`, `general` or `social` (also `side` and `end`). It sets the badge next to the time.
+   - **Day**: only needed on the first row of each day.
+2. **File → Share → Publish to web** → pick the schedule tab → **Comma-separated values (.csv)** → **Publish**. Copy the link.
+3. Paste it into `site-config.js` as `schedule.sheetCsvUrl`.
+
+Edits to the sheet show up on the site within about 5 minutes (Google's publishing delay). No commit needed.
+Without a sheet, the page uses `schedule/schedule-data.js` instead.
+
+The event name, date, location, logo and social links on the schedule and map list come from `site-config.js` too.
+
+## Map list from a Google Sheet
+
+Same idea as the schedule:
+
+1. **File → Import** `maps/maplist-template.csv` into a new tab (it's your current map list). Columns: **Stage, Heading, Round, Format, Game, Mode, Map, Stage notes, Image**.
+   - **Stage** is the tab name. **Heading**, **Stage notes** and **Image** only go on the first row of each stage.
+   - Blank **Stage**, **Round** and **Format** cells repeat the row above.
+   - **Mode**: `SZ`, `TC`, `RM`, `CB`, `TW` or `Counterpick` (leave **Map** blank for counterpick games).
+   - **Image**: a link such as `/assets/counterpick-pool.png`, shown at the bottom of that stage.
+2. **File → Share → Publish to web** → that tab → **CSV** → **Publish**, and paste the link into `site-config.js` as `maps.sheetCsvUrl`.
+
+Without a sheet, the page shows the map list written in `maps/index.html`.
 
 ## Updating the run of show from Sheets
 
@@ -90,20 +102,34 @@ Run of show → **Tools** → **Running late?** moves every unfinished block fro
 
 Write owners the way your sheet does: `Deed / Law`, `Raven (Station 1) / Piko (Mainstage)`. Names are split on `/`, `,` and `&`; text in brackets is shown as that person’s spot in **My shifts**. Blocks with no owner, `TBD` or `?` are flagged.
 
-## Privacy: who sees what
+## PIN levels: who can do what
 
-| | Attendees | Staff with the PIN |
-|---|---|---|
-| Hub, schedule, maps, station board | ✓ | ✓ |
-| Free play: My spot, Stations, Standings | ✓ | ✓ |
-| Staff links in the menu and on the hub | Hidden | ✓ |
-| Run of show, My shifts, check-in data | Locked (the database refuses without the PIN) | ✓ |
-| Free play staff tab | Hidden | ✓ (still needs the matchmaker's own PIN) |
+There are three PINs. The owner sets them in **Run of show → Tools → PINs**.
 
-- The staff data is protected by the database itself, not just hidden on the page.
-- The matchmaker is a separate system with its own PIN. Player names, teams and scores there stay public on purpose, because players use them on their phones. You can set the matchmaker PIN to the same number as the staff PIN to make life easier.
-- Staff pages check for changes every 4 seconds instead of instantly, because private data can't use Supabase's realtime feed.
-- **Sign out** on a shared device (the lock button on a staff page, or the hub's footer button) so the next person can't see staff data.
+| | Attendees | Volunteer | Staff | Owner |
+|---|---|---|---|---|
+| Hub, schedule, maps, station board, free play (player side) | ✓ | ✓ | ✓ | ✓ |
+| **My shifts**: see and tick off their own blocks | | ✓ | ✓ | ✓ |
+| **Check-in**: check teams in/out, mark players here, flag Switch 2s | | ✓ | ✓ | ✓ |
+| Full run of show: Now, Timeline, editing, adding, delays | | | ✓ | ✓ |
+| Editing teams and players, walk-up teams, imports (add / update) | | | ✓ | ✓ |
+| Free play staff tab (still needs the matchmaker's own PIN) | | | ✓ | ✓ |
+| Deleting blocks or teams, resets, "replace" imports, changing PINs | | | | ✓ |
+
+- Upgrading from the single-PIN version: your old staff PIN becomes the **owner PIN**. Set Staff and Volunteer PINs before the event.
+- The levels are enforced by the database, not just hidden on the page.
+- Volunteers pick their own name in **My shifts**. They can only tick off blocks that have their name on them.
+- **Turn off** a level's PIN in Tools to sign everyone using it out.
+- Staff and volunteers on shared devices should tap **Lock** when they're done.
+- Staff pages check for changes every 4 seconds, because private data can't use Supabase's realtime feed.
+
+## Mode icons (map list)
+
+Put square icons (transparent background) in `assets/modes/`: `sz.png`, `tc.png`, `rm.png`, `cb.png`, `tw.png`. Missing icons show the text label instead. For .svg or .webp, set `maps: { iconType: "svg" }` in `site-config.js`.
+
+## Font
+
+Every page uses one font, the station board's bold Arial/Helvetica look. To change it for an event, add `font: "Barlow",` (any Google Fonts name) to `site-config.js`.
 
 ## Troubleshooting
 

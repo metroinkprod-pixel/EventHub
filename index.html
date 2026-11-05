@@ -33,6 +33,7 @@ h2.staff::before { content: ""; display: inline-block; width: 8px; height: 8px; 
 .card .live { color: var(--gold); font-weight: 700; }
 .card.staff { border-color: color-mix(in srgb, var(--t-warn) 30%, var(--t-line)); }
 .card.staff:hover { border-color: var(--staff); }
+.card[hidden] { display: none; }
 footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 2rem; }
 .staffbtn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 99px; padding: 6px 14px; font: inherit; cursor: pointer; }
 .staffbtn:hover { color: var(--ink); border-color: var(--staff); }
@@ -67,10 +68,10 @@ dialog .err { color: var(--t-danger); font-size: .9rem; min-height: 1.3em; margi
   <section id="staff" hidden>
     <h2 class="staff">Staff</h2>
     <div class="grid">
-      <a class="card staff" href="/run-of-show/"><span class="ic">⏱️</span><b>Run of show</b><span id="ros-peek">What’s happening now and who’s on it</span></a>
-      <a class="card staff" href="/run-of-show/?view=mine"><span class="ic">🙋</span><b>My shifts</b><span>Just your blocks for the day</span></a>
-      <a class="card staff" href="/checkin/"><span class="ic">✅</span><b>Tournament check-in</b><span id="ci-peek">Teams, players and Switch 2s</span></a>
-      <a class="card staff" href="/matchmaker/#staff"><span class="ic">🔀</span><b>Free play (staff)</b><span>Start matches, record scores</span></a>
+      <a class="card staff" data-need="staff" href="/run-of-show/"><span class="ic">⏱️</span><b>Run of show</b><span id="ros-peek">What’s happening now and who’s on it</span></a>
+      <a class="card staff" data-need="volunteer" href="/run-of-show/?view=mine"><span class="ic">🙋</span><b>My shifts</b><span>Just your blocks for the day</span></a>
+      <a class="card staff" data-need="volunteer" href="/checkin/"><span class="ic">✅</span><b>Tournament check-in</b><span id="ci-peek">Teams, players and Switch 2s</span></a>
+      <a class="card staff" data-need="staff" href="/matchmaker/#staff"><span class="ic">🔀</span><b>Free play (staff)</b><span>Start matches, record scores</span></a>
     </div>
   </section>
 </main>
@@ -92,7 +93,8 @@ dialog .err { color: var(--t-danger); font-size: .9rem; min-height: 1.3em; margi
   function sync() {
     var on = O.unlocked();
     section.hidden = !on;
-    btn.textContent = on ? "Staff: signed in · Sign out" : "Staff sign-in";
+    section.querySelectorAll("[data-need]").forEach(function (c) { c.hidden = !O.can(c.dataset.need); });
+    btn.textContent = on ? O.roleName() + ": signed in · Sign out" : "Staff sign-in";
     clearInterval(timer);
     if (on && O.configured) { peek(); timer = setInterval(peek, 60000); }
   }
@@ -106,6 +108,7 @@ dialog .err { color: var(--t-danger); font-size: .9rem; min-height: 1.3em; margi
       var res = await O.sb.rpc("ops_summary", { p_pin: O.pin, p_now: O.nowMin() });
       if (res.error || !res.data.ok) { if (res.data && res.data.error === "bad_pin") O.lock(); return; }
       var live = res.data.live || [];
+      if (res.data.role && res.data.role !== O.role) { O.role = res.data.role; try { localStorage.setItem("ops-role", O.role); } catch (e) {} sync(); return; }
       document.getElementById("ros-peek").innerHTML = live.length
         ? '<span class="live">Now:</span> ' + O.esc(live.slice(0, 2).join(" · ")) + (live.length > 2 ? " +" + (live.length - 2) + " more" : "")
         : "Nothing scheduled right now";

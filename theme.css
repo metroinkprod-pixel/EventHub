@@ -3,8 +3,8 @@
    Pick a theme in site-config.js:   theme: "halloween"
    Preview any theme on any page by adding ?theme=winter to the address.
    To make a new theme, copy one block below, rename it, change the colors.
+   Header texture example:  --t-pattern: repeating-linear-gradient(45deg, transparent 0 38px, rgba(255,255,255,.04) 38px 40px);
    ===================================================================== */
-@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap");
 
 /* Default = Halloween (used if no theme is set) */
 :root,
@@ -29,9 +29,13 @@
   --t-good:        #57d68d;
   --t-warn:        #ffb02e;
   --t-danger:      #ff5a5f;
-  --t-display:     "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
-  --t-body:        "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
-  --t-pattern:     repeating-linear-gradient(45deg, transparent 0 38px, color-mix(in srgb, var(--t-accent) 6%, transparent) 38px 40px);
+  /* One font everywhere (the station board's bold Arial / Helvetica look).
+     Change it per event with  font: "Barlow"  in site-config.js. */
+  --t-font:        Arial, "Helvetica Neue", Helvetica, sans-serif;
+  --t-display:     var(--t-font);
+  --t-body:        var(--t-font);
+  /* Optional background texture for page headers. "none" = plain. */
+  --t-pattern:     none;
   color-scheme: dark;
 }
 
@@ -42,7 +46,6 @@
   --t-accent: #00b4e6; --t-accent-ink: #0a1628; --t-highlight: #f5c518; --t-highlight-ink: #0a1628;
   --t-accent-3: #b07ef5; --t-side-a: #77a0ff; --t-side-b: #f3a646;
   --t-good: #4fd6a8; --t-warn: #f5c518; --t-danger: #ff6b74;
-  --t-pattern: repeating-linear-gradient(45deg, transparent 0 40px, color-mix(in srgb, var(--t-accent) 4%, transparent) 40px 41px);
 }
 
 /* Winter (ice blue, frost) */
@@ -52,7 +55,6 @@
   --t-accent: #6cc4ff; --t-accent-ink: #06121e; --t-highlight: #c9f1ff; --t-highlight-ink: #06121e;
   --t-accent-3: #b49cff; --t-side-a: #6cc4ff; --t-side-b: #ff9f80;
   --t-good: #63e2b7; --t-warn: #ffd27a; --t-danger: #ff7a85;
-  --t-pattern: radial-gradient(color-mix(in srgb, #ffffff 7%, transparent) 1px, transparent 1.5px) 0 0 / 22px 22px;
 }
 
 /* Neon (stream purple, electric yellow) */
@@ -62,7 +64,6 @@
   --t-accent: #9146ff; --t-accent-ink: #ffffff; --t-highlight: #e6ff3d; --t-highlight-ink: #111015;
   --t-accent-3: #2ee6d6; --t-side-a: #2ee6d6; --t-side-b: #ff5cc8;
   --t-good: #4be38f; --t-warn: #ffc83d; --t-danger: #ff5a6e;
-  --t-pattern: repeating-linear-gradient(-45deg, transparent 0 28px, color-mix(in srgb, var(--t-accent) 7%, transparent) 28px 30px);
 }
 
 /* Shared touches every page gets */
