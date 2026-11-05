@@ -35,6 +35,18 @@ h2 { margin: 0 0 .7rem; font-family: var(--t-display); font-size: .95rem; letter
 .card.staff { border-color: color-mix(in srgb, var(--t-warn) 30%, var(--t-line)); }
 .card.staff:hover { border-color: var(--staff); }
 .card[hidden] { display: none; }
+/* Activities */
+.acts { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.act { display: grid; gap: 6px; align-content: start; background: var(--card); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 16px; }
+.act.main { border-color: var(--t-accent); box-shadow: inset 4px 0 0 var(--t-accent); }
+.act .k { justify-self: start; font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 2px 8px; border-radius: var(--t-radius-sm);
+  background: color-mix(in srgb, var(--t-accent) 15%, transparent); color: var(--t-accent); border: 1px solid color-mix(in srgb, var(--t-accent) 35%, transparent); }
+.act b { font: 700 1.2rem/1.2 var(--t-font); text-transform: uppercase; letter-spacing: .02em; }
+.act p { margin: 0; color: var(--muted); font-size: .95rem; overflow-wrap: anywhere; }
+.act .when { color: var(--t-ink-2); font-size: .88rem; font-weight: 600; }
+.act a.go { justify-self: start; margin-top: 4px; text-decoration: none; font-weight: 700; font-size: .9rem; padding: 7px 14px; border-radius: var(--t-radius-sm);
+  background: var(--t-accent); color: var(--t-accent-ink); }
+.act a.go:hover { filter: brightness(1.1); }
 footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 2rem; }
 </style>
 </head>
@@ -55,6 +67,10 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
       <a class="card" href="/matchmaker/"><span class="ic">🎮</span><b>Free play</b><span>Check in for scrims on open stations</span></a>
     </div>
   </section>
+  <section id="activities" hidden>
+    <h2>Today’s activities</h2>
+    <div class="grid acts" id="actList"></div>
+  </section>
   <section id="staff" hidden>
     <h2 class="staff">Staff</h2>
     <div class="grid">
@@ -74,7 +90,25 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
 <script>
 (function () {
   var H = window.HUB || {}, O = window.Ops;
-  if (H.eventName) document.getElementById("ev").textContent = H.eventName;
+  // Heading = "Big Dapple Event Hub" (set by theme.js from shortName in site-config.js)
+  document.getElementById("ev").textContent = window.HUB_PAGE_TITLE || H.eventName || "Event Hub";
+  // Today's activities (the "activities" list in site-config.js)
+  var acts = Array.isArray(H.activities) ? H.activities.filter(function (a) { return a && a.title; }) : [];
+  if (acts.length) {
+    document.getElementById("actList").innerHTML = acts.map(function (a) {
+      var link = a.link && /^(https?:\/\/|\/)/i.test(a.link) ? a.link : "";
+      var ext = /^https?:/i.test(link);
+      return '<div class="act' + (a.main ? " main" : "") + '">' +
+        (a.main ? '<span class="k">Main event</span>' : (a.tag ? '<span class="k">' + O.esc(a.tag) + "</span>" : "")) +
+        "<b>" + O.esc(a.title) + "</b>" +
+        (a.when ? '<span class="when">' + O.esc(a.when) + "</span>" : "") +
+        (a.text ? "<p>" + O.esc(a.text) + "</p>" : "") +
+        (link ? '<a class="go" href="' + O.esc(link) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(a.linkText || "Open") + "</a>" : "") +
+        "</div>";
+    }).join("");
+    document.getElementById("activities").hidden = false;
+  }
+
   // Event logo (same one as the schedule and map list: "logo" in site-config.js)
   var logo = document.getElementById("logo");
   if (H.logo) {
