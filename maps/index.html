@@ -4,19 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gridlock 2026 — Map List</title>
+<link rel="stylesheet" href="/theme.css">
+<script src="/site-config.js"></script>
+<script src="/theme.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #0d1a2e;
-    color: #e8edf5;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--t-bg);
+    color: var(--t-ink);
+    font-family: var(--t-body);
     min-height: 100vh;
   }
 
   .hero {
-    background: linear-gradient(180deg, #0a1628 0%, #0d1a2e 100%);
-    border-bottom: 2px solid #00b4e6;
+    background: linear-gradient(180deg, var(--t-bg-deep) 0%, var(--t-bg) 100%);
+    border-bottom: 2px solid var(--t-accent);
     padding: 2.5rem 1.25rem 2rem;
     text-align: center;
     position: relative;
@@ -31,8 +34,8 @@
       45deg,
       transparent,
       transparent 40px,
-      rgba(0,180,230,0.03) 40px,
-      rgba(0,180,230,0.03) 41px
+      color-mix(in srgb, var(--t-accent) 3%, transparent) 40px,
+      color-mix(in srgb, var(--t-accent) 3%, transparent) 41px
     );
     pointer-events: none;
   }
@@ -53,11 +56,11 @@
     font-size: 2.2rem;
     font-weight: 800;
     letter-spacing: -0.01em;
-    color: #f5c518;
+    color: var(--t-highlight);
     line-height: 1.1;
   }
 
-  .event-name span { color: #f5c518; display: inline; }
+  .event-name span { color: var(--t-highlight); display: inline; }
 
   .event-meta {
     position: relative;
@@ -74,14 +77,14 @@
     align-items: center;
     gap: 6px;
     font-size: 0.85rem;
-    color: #a8bdd4;
+    color: var(--t-muted);
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(0,180,230,0.2);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
     border-radius: 99px;
     padding: 4px 14px;
   }
 
-  .meta-pill svg { width: 13px; height: 13px; flex-shrink: 0; color: #00b4e6; }
+  .meta-pill svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--t-accent); }
 
   .link-row {
     display: flex;
@@ -98,9 +101,9 @@
     font-size: 0.8rem;
     font-weight: 600;
     text-decoration: none;
-    color: #a8bdd4;
+    color: var(--t-muted);
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(0,180,230,0.2);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
     border-radius: 99px;
     padding: 4px 14px;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
@@ -109,17 +112,17 @@
   .link-pill svg { width: 13px; height: 13px; flex-shrink: 0; }
 
   .link-pill:hover {
-    background: rgba(0,180,230,0.15);
-    color: #e8edf5;
-    border-color: rgba(0,180,230,0.4);
+    background: color-mix(in srgb, var(--t-accent) 15%, transparent);
+    color: var(--t-ink);
+    border-color: color-mix(in srgb, var(--t-accent) 40%, transparent);
   }
 
   .link-pill:active { transform: scale(0.97); }
 
   .link-pill.twitch svg { color: #9146ff; }
   .link-pill.discord svg { color: #5865f2; }
-  .link-pill.twitter svg { color: #e8edf5; }
-  .link-pill.bluesky svg { color: #00b4e6; }
+  .link-pill.twitter svg { color: var(--t-ink); }
+  .link-pill.bluesky svg { color: var(--t-accent); }
 
   .subnav {
     position: relative;
@@ -141,20 +144,20 @@
   }
 
   .subnav a.active {
-    background: #00b4e6;
-    color: #0a1628;
-    border: 1px solid #00b4e6;
+    background: var(--t-accent);
+    color: var(--t-bg-deep);
+    border: 1px solid var(--t-accent);
   }
 
   .subnav a.inactive {
     background: rgba(255,255,255,0.05);
-    color: #a8bdd4;
-    border: 1px solid rgba(0,180,230,0.25);
+    color: var(--t-muted);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 25%, transparent);
   }
 
   .subnav a.inactive:hover {
-    background: rgba(0,180,230,0.12);
-    color: #e8edf5;
+    background: color-mix(in srgb, var(--t-accent) 12%, transparent);
+    color: var(--t-ink);
   }
 
   .stage-tabs {
@@ -179,25 +182,25 @@
     text-transform: uppercase;
     padding: 10px 12px;
     border-radius: 8px;
-    border: 1px solid rgba(245,197,24,0.25);
+    border: 1px solid color-mix(in srgb, var(--t-highlight) 25%, transparent);
     background: rgba(255,255,255,0.04);
-    color: #a8bdd4;
+    color: var(--t-muted);
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     user-select: none;
   }
 
   .stage-tab:hover {
-    background: rgba(245,197,24,0.1);
-    color: #e8edf5;
+    background: color-mix(in srgb, var(--t-highlight) 10%, transparent);
+    color: var(--t-ink);
   }
 
   .stage-tab:active { transform: scale(0.97); }
 
   .stage-tab.active {
-    background: #f5c518;
-    color: #0a1628;
-    border-color: #f5c518;
+    background: var(--t-highlight);
+    color: var(--t-bg-deep);
+    border-color: var(--t-highlight);
   }
 
   .content { padding: 1.5rem 1.25rem 3rem; max-width: 560px; margin: 0 auto; }
@@ -210,10 +213,10 @@
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #f5c518;
+    color: var(--t-highlight);
     margin-bottom: 0.75rem;
     padding-bottom: 0.6rem;
-    border-bottom: 2px solid rgba(245,197,24,0.3);
+    border-bottom: 2px solid color-mix(in srgb, var(--t-highlight) 30%, transparent);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -222,9 +225,9 @@
   .stage-desc {
     font-size: 0.8rem;
     line-height: 1.5;
-    color: #a8bdd4;
+    color: var(--t-muted);
     background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(0,180,230,0.15);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 15%, transparent);
     border-radius: 8px;
     padding: 0.7rem 0.9rem;
     margin-bottom: 1.25rem;
@@ -238,10 +241,10 @@
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #00b4e6;
+    color: var(--t-accent);
     margin-bottom: 0.5rem;
     padding-bottom: 0.4rem;
-    border-bottom: 1px solid rgba(0,180,230,0.2);
+    border-bottom: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -251,14 +254,14 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(0,180,230,0.15);
+    background: color-mix(in srgb, var(--t-accent) 15%, transparent);
   }
 
   .bo-tag {
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.04em;
-    color: #7a9ab8;
+    color: var(--t-muted-2);
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 4px;
@@ -281,8 +284,8 @@
     height: 22px;
     border-radius: 50%;
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(0,180,230,0.25);
-    color: #7a9ab8;
+    border: 1px solid color-mix(in srgb, var(--t-accent) 25%, transparent);
+    color: var(--t-muted-2);
     font-size: 0.7rem;
     font-weight: 700;
     display: flex;
@@ -293,9 +296,9 @@
 
   .match-info { flex: 1; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 
-  .map-name { font-size: 0.9rem; font-weight: 600; color: #e8edf5; }
+  .map-name { font-size: 0.9rem; font-weight: 600; color: var(--t-ink); }
 
-  .on-map { font-size: 0.85rem; color: #7a9ab8; }
+  .on-map { font-size: 0.85rem; color: var(--t-muted-2); }
 
   .mode-tag {
     font-size: 0.63rem;
@@ -316,15 +319,15 @@
   .footer {
     text-align: center;
     padding: 1.5rem 1.25rem;
-    border-top: 1px solid rgba(0,180,230,0.15);
+    border-top: 1px solid color-mix(in srgb, var(--t-accent) 15%, transparent);
     font-size: 0.75rem;
-    color: #4e6a84;
+    color: var(--t-faint);
   }
 
    .cp-pool-block {
     margin-top: 2rem;
     padding-top: 1.5rem;
-    border-top: 2px solid rgba(245,197,24,0.3);
+    border-top: 2px solid color-mix(in srgb, var(--t-highlight) 30%, transparent);
   }
 
   .cp-pool-label {
@@ -332,7 +335,7 @@
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #f5c518;
+    color: var(--t-highlight);
     margin-bottom: 0.75rem;
     text-align: center;
   }
@@ -340,7 +343,7 @@
   .cp-pool-img-wrap {
     border-radius: 10px;
     overflow: hidden;
-    border: 1px solid rgba(0,180,230,0.25);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 25%, transparent);
     background: rgba(255,255,255,0.03);
   }
 
@@ -351,6 +354,14 @@
     object-fit: contain;
     margin: 0 auto;
   }
+
+  /* Theme: fonts + background pattern (colors come from /theme.css) */
+  body { font-family: var(--t-body); }
+  .event-name, .day-label, .stage-label, .round-label, .stage-tab, .subnav a, .cp-pool-label { font-family: var(--t-display); }
+  .event-name { font-weight: 800; letter-spacing: .01em; text-transform: uppercase; }
+  .hero::before { background: var(--t-pattern) !important; }
+  .stage-tab.active, .subnav a.active { color: var(--t-accent-ink); }
+  .stage-tab.active { color: var(--t-highlight-ink); }
 </style>
 </head>
 <body>
@@ -388,8 +399,8 @@
       </a>
       <a href="#" target="_blank" rel="noopener" class="link-pill startgg">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.24 7.5 3.76-7.5 3.76L4.5 8 12 4.24ZM4 9.62l7 3.5v6.76l-7-3.5V9.62Zm9 10.26v-6.76l7-3.5v6.76l-7 3.5Z"/></svg>
-         Bracket
-       </a>
+        Bracket
+      </a>
     </div>
   </div>
   <nav class="subnav">
@@ -664,7 +675,6 @@
   });
 </script>
 
-<script src="/site-config.js"></script>
 <script src="/shared/hero.js"></script>
 <script src="/maps/maplist.js"></script>
 <script src="/nav.js"></script>
