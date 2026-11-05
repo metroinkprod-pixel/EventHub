@@ -14,6 +14,8 @@
 body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.5 var(--t-body); min-height: 100vh; }
 .hero { padding: 2.2rem 1.25rem 1.6rem; text-align: center; border-bottom: 2px solid var(--cyan);
   background: var(--t-pattern), linear-gradient(180deg, var(--t-bg-deep), var(--bg)); }
+.hero .logo { display: block; width: min(180px, 45vw); height: auto; margin: 0 auto 14px; }
+.hero .logo[hidden] { display: none; }
 .hero h1 { margin: 0; font: 800 clamp(2rem, 7vw, 3rem)/1.05 var(--t-display); color: var(--gold); letter-spacing: .01em; text-transform: uppercase; }
 .hero p { margin: .4rem 0 0; color: var(--muted); }
 .links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
@@ -38,6 +40,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
 </head>
 <body>
 <header class="hero">
+  <img id="logo" class="logo" alt="" hidden>
   <h1 id="ev">Event Hub</h1>
   <p id="date"></p>
   <div class="links" id="links"></div>
@@ -71,6 +74,14 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
 (function () {
   var H = window.HUB || {}, O = window.Ops;
   if (H.eventName) { document.getElementById("ev").textContent = H.eventName; document.title = H.eventName + " · Hub"; }
+  // Event logo (same one as the schedule and map list: "logo" in site-config.js)
+  var logo = document.getElementById("logo");
+  if (H.logo) {
+    logo.onload = function () { logo.hidden = false; };
+    logo.onerror = function () { logo.hidden = true; };
+    logo.alt = (H.eventName || "Event") + " logo";
+    logo.src = H.logo;
+  }
   document.getElementById("date").textContent = H.eventDate || "";
   var L = H.links || {}, names = { stream: "📺 Livestream", discord: "💬 Discord", startgg: "🏆 Bracket" };
   document.getElementById("links").innerHTML = Object.keys(names).filter(function (k) { return L[k]; }).map(function (k) {

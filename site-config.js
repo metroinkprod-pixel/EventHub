@@ -5,7 +5,7 @@ window.HUB = {
   eventName: "Big Dapple Event Hub",                       // shown on the hub and staff tools
   eventDate: "November 7th, 2026",                                // e.g. "Saturday, Dec 5"
   location: "OSNYC - Chinatown",
-  logo: "/assets/NintendoGridlock.png",
+  logo: "/assets/EventLogo.png",
   theme: "halloween",      // or "gridlock", "winter", "neon"
   themeColors: {},         // optional tweaks, e.g. { accent: "#ff7a1a", highlight: "#ffd23f" }
   schedule: {
