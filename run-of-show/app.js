@@ -34,9 +34,10 @@
     if (ma == null) return 1; if (mb == null) return -1;
     return ma - mb || (endOf(a) - endOf(b)) || a.sort - b.sort;
   }
+  var ownerList = [];   // volunteers only get owner names, not the whole run of show
   function allPeople() {
     var s = {};
-    rows.forEach(function (r) { O.people(r.owner).forEach(function (p) { s[p.name] = true; }); });
+    (O.can("staff") ? rows.map(function (r) { return r.owner; }) : ownerList).forEach(function (o) { O.people(o).forEach(function (p) { s[p.name] = true; }); });
     return Object.keys(s).sort(function (a, b) { return a.localeCompare(b); });
   }
   function categories() {
@@ -78,7 +79,17 @@
     } catch (err) { Object.assign(r, before); O.toast(err.message); }
     draw(true);
   }
-  function setStatus(r, status) { O.guard(function () { save(r, { status: status }); }); }
+  function setStatus(r, status) {
+    O.guard(async function () {
+      var before = r.status;
+      r.status = status; draw(true);
+      try {
+        var res = await O.rpc("ops_ros_mark", { p_id: r.id, p_status: status, p_name: me || "" });
+        Object.assign(r, res.row);
+      } catch (err) { r.status = before; O.toast(err.message); }
+      draw(true);
+    });
+  }
   async function addRow(fields) {
     try {
       var res = await O.rpc("ops_ros_save", { p_row: fields });
@@ -164,7 +175,7 @@
       '<div class="meta">' + statusPill(r, n) + (r.category ? '<span class="tag">' + esc(r.category) + "</span>" : "") +
       (r.added ? '<span class="tag added">Added</span>' : "") + ownerHtml(r) + "</div>" +
       (r.notes ? '<div class="notes">' + esc(r.notes) + "</div>" : "") + "</div>" +
-      '<button class="btn sm ghost" data-act="edit" data-id="' + r.id + '">Edit</button></li>';
+      (O.can("staff") ? '<button class="btn sm ghost" data-act="edit" data-id="' + r.id + '">Edit</button>' : "") + "</li>";
   }
 
   function editorHtml(r) {
@@ -184,7 +195,7 @@
       '<label class="f">Owner(s)<input type="text" name="owner" list="ppl" value="' + esc(r.owner) + '" placeholder="e.g. Deed / Law (Station 3)"></label>' +
       '<label class="f wide">Notes<input type="text" name="notes" value="' + esc(r.notes) + '"></label>' +
       '<div class="acts"><button class="btn primary">Save</button><button type="button" class="btn ghost" data-act="cancel">Cancel</button>' +
-      '<button type="button" class="btn danger" data-act="delete" data-id="' + r.id + '">Delete</button></div></form></li>';
+      (O.can("owner") ? '<button type="button" class="btn danger" data-act="delete" data-id="' + r.id + '">Delete</button>' : "") + "</div></form></li>";
   }
 
   function viewTimeline() {
@@ -256,7 +267,7 @@
     var html = '<section class="panel"><div class="bar"><label for="me" class="small muted">I am</label><select id="me"><option value="">Choose your name</option>' +
       ppl.map(function (p) { return '<option' + (p.toLowerCase() === me.toLowerCase() ? " selected" : "") + ">" + esc(p) + "</option>"; }).join("") + "</select>" +
       (me ? '<button class="btn sm" id="share">Copy my link</button>' : "") + "</div>" +
-      '<p class="small muted" style="margin:8px 0 0">Staff can bookmark their own link so this page opens straight to their shifts.</p></section>';
+      '<p class="small muted" style="margin:8px 0 0">Bookmark your own link so this page opens straight to your shifts.</p></section>';
     if (!me) { main.innerHTML = html; bindMine(); return; }
     var mine = rows.filter(function (r) { return hasPerson(r, me); }).sort(byTime);
     var nowL = mine.filter(function (r) { return isLive(r, n); });
@@ -281,7 +292,8 @@
       try { localStorage.setItem("ros-me", me); } catch (x) {}
       var u = new URL(location.href); if (me) u.searchParams.set("me", me); else u.searchParams.delete("me"); u.searchParams.delete("view");
       history.replaceState(null, "", u);
-      draw(true);
+      if (!O.can("staff")) { loaded = false; draw(true); reload().catch(function (err) { O.toast(err.message); }); }
+      else draw(true);
     };
     var s = $("share");
     if (s) s.onclick = async function () {
@@ -346,17 +358,27 @@
         '<div class="tablewrap"><table class="prevtable"><thead><tr><th>Time</th><th>Category</th><th>Task</th><th>Owner</th><th>Notes</th></tr></thead><tbody>' +
         mr.slice(0, 6).map(function (r) { return "<tr><td>" + esc(r.start_min == null ? "—" : fmt(r.start_min) + (r.end_min != null ? "–" + fmt(r.end_min) : "")) + "</td><td>" + esc(r.category) + "</td><td>" + esc(r.task) + "</td><td>" + esc(r.owner) + "</td><td>" + esc(r.notes) + "</td></tr>"; }).join("") +
         "</tbody></table></div>" +
-        '<div class="bar" style="margin-top:12px"><button class="btn primary" data-act="import-replace">Replace sheet blocks</button><button class="btn" data-act="import-append">Add to the run of show</button></div>' +
-        '<p class="small muted" style="margin:8px 0 0">“Replace” swaps out everything that came from a sheet and keeps blocks added in this app. Checkmarks carry over for blocks that keep the same start time and category.</p>';
+        '<div class="bar" style="margin-top:12px">' + (O.can("owner") ? '<button class="btn primary" data-act="import-replace">Replace sheet blocks</button>' : "") + '<button class="btn' + (O.can("owner") ? "" : " primary") + '" data-act="import-append">Add to the run of show</button></div>' +
+        (O.can("owner") ? '<p class="small muted" style="margin:8px 0 0">“Replace” swaps out everything that came from a sheet and keeps blocks added in this app. Checkmarks carry over for blocks that keep the same start time and category.</p>'
+          : '<p class="small muted" style="margin:8px 0 0">Only the owner can replace the whole run of show; you can add blocks to it.</p>');
     }
     html += "</section>";
 
     html += '<section class="panel"><h2>Export</h2><p class="small muted">Download the current run of show as a CSV you can open in Sheets.</p><button class="btn" data-act="export">Download CSV</button></section>';
-    html += '<section class="panel"><h2>Reset</h2><div class="bar"><button class="btn" data-act="reset-statuses">Uncheck everything</button>' +
-      '<button class="btn danger" data-act="reset-all">Delete the whole run of show</button></div></section>';
-    html += '<section class="panel"><h2>Change staff PIN</h2><p class="small muted">Changes it for the run of show and check-in. Everyone will need the new PIN.</p>' +
-      '<form class="bar" id="pinf"><input type="password" name="pin" inputmode="numeric" placeholder="New PIN (6+ digits)" autocomplete="new-password"><button class="btn">Change PIN</button></form></section>';
+    if (O.can("owner")) {
+      html += '<section class="panel"><h2>Reset <span class="tag">Owner</span></h2><div class="bar"><button class="btn" data-act="reset-statuses">Uncheck everything</button>' +
+        '<button class="btn danger" data-act="reset-all">Delete the whole run of show</button></div></section>';
+      html += '<section class="panel"><h2>PINs <span class="tag">Owner</span></h2>' +
+        '<p class="small muted">One PIN per level, used for the run of show and check-in. Volunteers can check teams in and see their own shifts. Staff can do everything except deleting, resetting and changing PINs.</p>' +
+        '<div id="pinstatus" class="small muted" style="margin-bottom:8px"></div>' +
+        [["volunteer", "Volunteer PIN"], ["staff", "Staff PIN"], ["owner", "Owner PIN"]].map(function (x) {
+          return '<form class="bar pinf" data-role="' + x[0] + '" style="margin-bottom:8px"><label class="f" style="flex:1;min-width:12rem">' + x[1] +
+            '<input type="password" name="pin" inputmode="numeric" placeholder="New ' + x[1].toLowerCase() + '" autocomplete="new-password"></label>' +
+            '<button class="btn" style="align-self:end">Set</button>' + (x[0] !== "owner" ? '<button type="button" class="btn ghost" data-act="pin-off" data-role="' + x[0] + '" style="align-self:end">Turn off</button>' : "") + "</form>";
+        }).join("") + "</section>";
+    }
     main.innerHTML = html;
+    if (O.can("owner")) loadPinStatus();
 
     $("paste").oninput = function (e) {
       var raw = e.target.value, table = O.parseTable(raw);
@@ -378,15 +400,24 @@
         catch (err) { O.toast(err.message); }
       });
     };
-    $("pinf").onsubmit = function (e) {
-      e.preventDefault();
-      var v = e.target.elements["pin"].value.trim();
-      if (!v) return;
-      O.guard(async function () {
-        try { await O.rpc("ops_change_pin", { p_new_pin: v }); O.pin = v; try { localStorage.setItem("ops-pin", v); } catch (x) {} O.toast("PIN changed"); e.target.reset(); }
-        catch (err) { O.toast(err.message); }
-      });
-    };
+    main.querySelectorAll("form.pinf").forEach(function (f) {
+      f.onsubmit = async function (e) {
+        e.preventDefault();
+        var v = f.elements["pin"].value.trim(), role = f.dataset.role;
+        if (!v) return;
+        try {
+          await O.rpc("ops_change_pin", { p_role: role, p_new_pin: v });
+          if (role === "owner") { O.pin = v; try { localStorage.setItem("ops-pin", v); } catch (x) {} }
+          O.toast(role.charAt(0).toUpperCase() + role.slice(1) + " PIN set"); f.reset(); loadPinStatus();
+        } catch (err) { O.toast(err.message); }
+      };
+    });
+  }
+  async function loadPinStatus() {
+    try {
+      var r = await O.rpc("ops_pin_status", {}), el = $("pinstatus");
+      if (el) el.textContent = "Volunteer PIN: " + (r.volunteer ? "set" : "off") + " · Staff PIN: " + (r.staff ? "set" : "off") + " · Owner PIN: set";
+    } catch (e) {}
   }
 
   async function doImport(mode) {
@@ -439,6 +470,11 @@
     else if (act === "import-replace") O.guard(function () { doImport("replace"); });
     else if (act === "import-append") O.guard(function () { doImport("append"); });
     else if (act === "export") exportCsv();
+    else if (act === "pin-off") (async function () {
+      var role = b.dataset.role;
+      if (!confirm("Turn off the " + role + " PIN? Anyone using it will be signed out.")) return;
+      try { await O.rpc("ops_change_pin", { p_role: role, p_new_pin: "" }); O.toast(role + " PIN turned off"); loadPinStatus(); } catch (err) { O.toast(err.message); }
+    })();
     else if (act === "reset-statuses") O.guard(async function () {
       if (!confirm("Uncheck every block for everyone?")) return;
       try { await O.rpc("ops_ros_reset", { p_mode: "statuses" }); await reload(); } catch (err) { O.toast(err.message); }
@@ -451,11 +487,16 @@
 
   // ---------- rendering ----------
   function render() {
-    document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === view.tab)); });
+    var staff = O.can("staff");
+    var tab = staff ? view.tab : "mine";   // volunteers only see their own shifts
+    document.querySelectorAll("#tabs button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.tab === tab));
+      b.hidden = O.unlocked() && !staff && b.dataset.tab !== "mine";
+    });
     if (!O.configured) { main.innerHTML = O.notConfiguredHtml(); return; }
     if (!O.unlocked()) { main.innerHTML = O.lockedHtml("the run of show and shifts"); return; }
-    if (!loaded) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
-    ({ now: viewNow, timeline: viewTimeline, mine: viewMine, tools: viewTools }[view.tab] || viewNow)();
+    if (!loaded || !O.roleKnown()) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
+    ({ now: viewNow, timeline: viewTimeline, mine: viewMine, tools: viewTools }[tab] || viewNow)();
   }
   var draw = O.makeRenderer(render, function () { return !!view.editing; });
   document.querySelectorAll("#tabs button").forEach(function (b) {
@@ -467,13 +508,23 @@
   });
   var loaded = false, poller = null;
   async function reload() {
-    var res = await O.rpc("ops_ros_list", {});
-    rows = O.merge(rows, res.rows);
+    if (!O.roleKnown()) await O.checkSavedPin();
+    if (O.can("staff")) {
+      var res = await O.rpc("ops_ros_list", {});
+      rows = O.merge(rows, res.rows);
+    } else {
+      var ppl = await O.rpc("ops_ros_people", {});
+      ownerList = ppl.owners || [];
+      var mine = me ? await O.rpc("ops_ros_mine", { p_name: me }) : { rows: [] };
+      rows = O.merge(rows, mine.rows);
+    }
     loaded = true;
     draw();
   }
+  var lastRole = O.role;
   O.onLockChange = function () {
-    if (!O.unlocked()) { rows = []; loaded = false; view.editing = null; if (poller) poller.reset(); O.setConn(false, "Locked"); draw(true); return; }
+    if (!O.unlocked()) { rows = []; ownerList = []; loaded = false; view.editing = null; if (poller) poller.reset(); O.setConn(false, "Locked"); draw(true); return; }
+    if (O.role !== lastRole) { lastRole = O.role; rows = []; loaded = false; if (poller) poller.reset(); }
     if (!loaded && poller) poller.now().catch(function () {});
     draw(true);
   };
@@ -485,7 +536,7 @@
         if (!loaded) main.innerHTML = '<div class="notice"><b>Couldn’t load the run of show.</b> Check the Supabase details in site-config.js and that ops-setup.sql ran. (' + esc(err.message) + ")</div>";
       });
     });
-    if (O.unlocked()) poller.now(); else { O.setConn(false, "Locked"); render(); }
+    if (O.unlocked()) { O.checkSavedPin().finally(function () { poller.now(); }); } else { O.setConn(false, "Locked"); render(); }
     setInterval(function () { if (view.tab !== "tools" && loaded) draw(); }, 30000);
   })();
 })();

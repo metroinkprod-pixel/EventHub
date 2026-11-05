@@ -1,0 +1,14 @@
+Day,Start,End,Event,Details,Type
+Event day,11:00 AM,12:00 PM,Doors open & check-in,Check in your team at the T.O. desk,general
+Event day,11:30 AM,12:00 PM,Wave A check-in & warmup,Team warmup and station assignment,main
+Event day,12:00 PM,1:30 PM,Wave A pools,"Pools A1 and A2, rounds 1 to 3",main
+Event day,1:00 PM,1:30 PM,Wave B check-in,Team warmup and station assignment,main
+Event day,1:30 PM,3:00 PM,Wave B pools,"Pools B1 and B2, rounds 1 to 3",main
+Event day,2:10 PM,2:50 PM,Silver & Bronze check-in,,main
+Event day,2:30 PM,4:30 PM,Silver bracket,Semifinals and finals on stream,main
+Event day,3:00 PM,4:30 PM,Bronze bracket,,main
+Event day,4:30 PM,4:45 PM,Group photo,Follow organizer instructions,social
+Event day,4:45 PM,4:55 PM,Costume contest winner,,social
+Event day,4:50 PM,7:05 PM,Top 8 round robin,Three rounds on stream,main
+Event day,7:20 PM,8:00 PM,Finals,,main
+Event day,7:40 PM,8:10 PM,Medal ceremony & wrap-up,"Awards, prizes and closing remarks",end

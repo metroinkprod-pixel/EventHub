@@ -122,7 +122,7 @@
   .link-pill.twitch svg { color: #9146ff; }
   .link-pill.discord svg { color: #5865f2; }
   .link-pill.twitter svg { color: var(--t-ink); }
-  .link-pill.bluesky svg { color: var(--t-accent); }
+  .link-pill.bluesky svg { color: #1185fe; }
 
   .subnav {
     position: relative;
@@ -362,6 +362,11 @@
   .hero::before { background: var(--t-pattern) !important; }
   .stage-tab.active, .subnav a.active { color: var(--t-accent-ink); }
   .stage-tab.active { color: var(--t-highlight-ink); }
+  /* Turf War + mode icons (icons go in /assets/modes/: sz.png tc.png rm.png cb.png tw.png) */
+  .mode-tw { background: rgba(170,230,60,0.14); color: #b8ec4a; border: 1px solid rgba(170,230,60,0.3); }
+  .mode-tag.has-icon { background: none; border: 0; padding: 0; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .mode-icon { width: 28px; height: 28px; object-fit: contain; display: block; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -403,10 +408,6 @@
       </a>
     </div>
   </div>
-  <nav class="subnav">
-    <a href="/schedule/" class="inactive">Schedule</a>
-    <a href="/maps/" class="active">Map List</a>
-  </nav>
 </div>
 
 

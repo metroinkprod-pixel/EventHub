@@ -13,10 +13,38 @@
 //   Stage notes  optional rules text for the stage (first row of the stage)
 //   Image        optional image link shown at the bottom of the stage (e.g. a map pool)
 // Blank Stage / Round / Format cells repeat the row above, so you only type them once.
+//
+// MODE ICONS: put image files in /assets/modes/ named
+//   sz.png  tc.png  rm.png  cb.png  tw.png   (Splat Zones, Tower Control, Rainmaker, Clam Blitz, Turf War)
+// Any icon that's missing shows the text label instead. To use .svg or .webp, set maps.iconType in site-config.js.
 (function () {
   var cfg = (window.HUB && window.HUB.maps) || {};
   var foot = document.querySelector(".footer");
   if (foot && window.HUB) foot.textContent = [HUB.eventName, HUB.location].filter(Boolean).join(" · ") || foot.textContent;
+
+  var ICON_NAMES = { sz: "Splat Zones", tc: "Tower Control", rm: "Rainmaker", cb: "Clam Blitz", tw: "Turf War" };
+  function iconize(root) {
+    var ext = (cfg.iconType || "png").replace(/^\./, "");
+    root.querySelectorAll(".mode-tag").forEach(function (tag) {
+      if (tag.dataset.iconized) return;
+      tag.dataset.iconized = "1";
+      var m = /\bmode-(sz|tc|rm|cb|tw)\b/.exec(tag.className);
+      if (!m) return;
+      var label = tag.textContent.trim();
+      var img = new Image();
+      img.className = "mode-icon";
+      img.alt = ICON_NAMES[m[1]];
+      img.title = ICON_NAMES[m[1]];
+      img.onload = function () {
+        tag.classList.add("has-icon");
+        tag.textContent = "";
+        tag.appendChild(img);
+        var sr = document.createElement("span"); sr.className = "sr-only"; sr.textContent = label; tag.appendChild(sr);
+      };
+      img.src = "/assets/modes/" + m[1] + "." + ext;
+    });
+  }
+  iconize(document);
   if (!cfg.sheetCsvUrl) return;
 
   function esc(x) { return String(x == null ? "" : x).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -36,7 +64,7 @@
   }
   var MODES = [
     [/^(sz|splat ?zones?)$/i, "sz", "SZ"], [/^(tc|tower( control)?)$/i, "tc", "TC"], [/^(rm|rain ?maker)$/i, "rm", "RM"],
-    [/^(cb|clam ?blitz)$/i, "cb", "CB"], [/^(tw|turf( war)?)$/i, "cp", "TW"], [/^(cp|counter ?pick)$/i, "cp", "Counterpick"]
+    [/^(cb|clam ?blitz)$/i, "cb", "CB"], [/^(tw|turf( war)?)$/i, "tw", "TW"], [/^(cp|counter ?pick)$/i, "cp", "Counterpick"]
   ];
   function mode(m) {
     for (var i = 0; i < MODES.length; i++) if (MODES[i][0].test(m || "")) return { cls: MODES[i][1], label: MODES[i][2] };
@@ -100,6 +128,7 @@
       blocks.forEach(function (b) { b.classList.toggle("visible", b.dataset.stage === tab.dataset.stage); });
       content.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    iconize(content);
     tabs.forEach(function (t) {
       t.addEventListener("click", function () { pick(t); });
       t.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(t); } });

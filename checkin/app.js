@@ -85,7 +85,7 @@
       (t.status === "checked_in" ? '<button class="btn" data-act="undo" data-id="' + t.id + '">Undo check-in</button>'
         : '<button class="btn good" data-act="checkin" data-id="' + t.id + '">Check in team</button>') +
       (t.status !== "no_show" ? '<button class="btn ghost" data-act="noshow" data-id="' + t.id + '">No-show</button>' : '<button class="btn ghost" data-act="undo" data-id="' + t.id + '">Not a no-show</button>') +
-      '<button class="btn ghost" data-act="edit" data-id="' + t.id + '">Edit</button></div></article>';
+      (O.can("staff") ? '<button class="btn ghost" data-act="edit" data-id="' + t.id + '">Edit</button>' : "") + "</div></article>";
   }
 
   function editorHtml(t) {
@@ -103,7 +103,7 @@
       tp.map(function (p) { return '<div class="prow"><input type="text" data-pid="' + p.id + '" value="' + esc(p.name) + '" aria-label="Player name"><button type="button" class="btn sm ghost" data-act="rmplayer" data-id="' + p.id + '" aria-label="Remove ' + esc(p.name) + '">Remove</button></div>'; }).join("") +
       '<div class="prow"><input type="text" name="newplayer" placeholder="Add a player"><button type="button" class="btn sm" data-act="addplayer" data-id="' + t.id + '">Add</button></div></div></div>' +
       '<div class="acts wide" style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn primary">Save</button><button type="button" class="btn ghost" data-act="cancel">Cancel</button>' +
-      '<button type="button" class="btn danger" data-act="delteam" data-id="' + t.id + '">Delete team</button></div></form></article>';
+      (O.can("owner") ? '<button type="button" class="btn danger" data-act="delteam" data-id="' + t.id + '">Delete team</button>' : "") + "</div></form></article>";
   }
 
   function viewCheckin() {
@@ -127,7 +127,7 @@
       '</div><div class="chips">' +
       [["", "Everyone"], ["expected", "Not here"], ["checked_in", "Checked in"], ["no_show", "No-shows"]].map(function (s) {
         return '<button class="chip" data-st="' + s[0] + '" aria-pressed="' + (view.status === s[0]) + '">' + s[1] + "</button>";
-      }).join("") + '</div></div><div class="bar"><button class="btn" data-act="newteam">+ Add walk-up team</button></div></section>';
+      }).join("") + "</div></div>" + (O.can("staff") ? '<div class="bar"><button class="btn" data-act="newteam">+ Add walk-up team</button></div>' : "") + "</section>";
     var q = view.q.trim().toLowerCase();
     var list = sortTeams(scope.filter(function (t) {
       if (view.editing === t.id) return true;
@@ -258,7 +258,7 @@
         '<label class="small" style="display:flex;gap:6px;align-items:center;margin-top:8px"><input type="checkbox" id="hdr"' + (importState.hasHeader ? " checked" : "") + "> First row is a header</label>";
       var list = importTeams();
       html += '<p class="small" style="margin:12px 0 6px"><b>' + list.length + " teams</b> found.</p>" + previewTable(list) +
-        '<div class="bar" style="margin-top:12px"><button class="btn primary" data-act="imp-merge">Add / update teams</button><button class="btn danger" data-act="imp-replace">Replace all teams</button></div>' +
+        '<div class="bar" style="margin-top:12px"><button class="btn primary" data-act="imp-merge">Add / update teams</button>' + (O.can("owner") ? '<button class="btn danger" data-act="imp-replace">Replace all teams</button>' : "") + "</div>" +
         '<p class="small muted" style="margin:8px 0 0">“Add / update” matches teams by name, fills in missing details and players, and keeps check-ins. “Replace” deletes every team first.</p>';
     }
     html += "</section>";
@@ -267,7 +267,7 @@
       (sggPreview ? '<p class="small" style="margin:12px 0 6px"><b>' + sggPreview.length + " teams</b> on start.gg.</p>" + previewTable(sggPreview) +
         '<div class="bar" style="margin-top:12px"><button class="btn primary" data-act="sgg-merge">Add / update teams</button></div>' : "") + "</section>";
     html += '<section class="panel"><h2>Export</h2><p class="small muted">Download check-in status as a CSV.</p><button class="btn" data-act="export">Download CSV</button></section>';
-    html += '<section class="panel"><h2>Reset</h2><div class="bar"><button class="btn" data-act="reset-statuses">Clear all check-ins</button><button class="btn danger" data-act="reset-all">Delete all teams</button></div></section>';
+    if (O.can("owner")) html += '<section class="panel"><h2>Reset <span class="tag">Owner</span></h2><div class="bar"><button class="btn" data-act="reset-statuses">Clear all check-ins</button><button class="btn danger" data-act="reset-all">Delete all teams</button></div></section>';
     main.innerHTML = html;
     $("paste").oninput = function (e) {
       var raw = e.target.value, table = O.parseTable(raw);
@@ -356,11 +356,16 @@
 
   // ---------- render ----------
   function render() {
-    document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === view.tab)); });
+    var staff = O.can("staff");
+    var tab = !staff && view.tab === "setup" ? "checkin" : view.tab;   // volunteers: check-in and Switch 2s only
+    document.querySelectorAll("#tabs button").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(b.dataset.tab === tab));
+      b.hidden = O.unlocked() && !staff && b.dataset.tab === "setup";
+    });
     if (!O.configured) { main.innerHTML = O.notConfiguredHtml(); return; }
     if (!O.unlocked()) { main.innerHTML = O.lockedHtml("check-in"); return; }
-    if (!loaded) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
-    ({ checkin: viewCheckin, switch: viewSwitch, setup: viewSetup }[view.tab] || viewCheckin)();
+    if (!loaded || !O.roleKnown()) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
+    ({ checkin: viewCheckin, switch: viewSwitch, setup: viewSetup }[tab] || viewCheckin)();
   }
   var draw = O.makeRenderer(render, function () { return !!view.editing; });
   document.querySelectorAll("#tabs button").forEach(function (b) {
@@ -372,6 +377,7 @@
   });
   var loaded = false, poller = null;
   async function reload() {
+    if (!O.roleKnown()) await O.checkSavedPin();
     var res = await O.rpc("ops_checkin_list", {});
     teams = O.merge(teams, res.teams); players = O.merge(players, res.players);
     loaded = true;
@@ -390,6 +396,6 @@
         if (!loaded) main.innerHTML = '<div class="notice"><b>Couldn’t load check-in.</b> Check the Supabase details in site-config.js and that ops-setup.sql ran. (' + esc(err.message) + ")</div>";
       });
     });
-    if (O.unlocked()) poller.now(); else { O.setConn(false, "Locked"); render(); }
+    if (O.unlocked()) { O.checkSavedPin().finally(function () { poller.now(); }); } else { O.setConn(false, "Locked"); render(); }
   })();
 })();

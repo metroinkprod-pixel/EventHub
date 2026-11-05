@@ -2,7 +2,7 @@
 (function () {
   var H = window.HUB || {}, cfg = H.schedule || {};
   var box = document.getElementById("schedule");
-  var TAGS = { main: "Main event", side: "Side event", social: "Social", end: "End of day", general: "" };
+  var TAGS = { main: "Main event", side: "Side event", social: "Social", end: "End of day", general: "General" };
 
   function esc(x) { return String(x == null ? "" : x).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function parseCsv(text) {
@@ -29,7 +29,7 @@
     if (/end|wrap|close/.test(t)) return "end";
     return "general";
   }
-  // Columns: Day | Start | End | Event | Details | Type | Tag   (header names can be in any order)
+  // Columns: Day | Start | End | Event | Details | Type   (header names can be in any order; Type = main / general / social / side / end)
   function rowsToItems(rows) {
     if (!rows.length) return [];
     var head = rows[0].map(function (h) { return h.toLowerCase(); });
@@ -57,12 +57,10 @@
     box.innerHTML = days.map(function (d) {
       return '<div class="day-block">' + (d ? '<div class="day-label">' + esc(d) + "</div>" : "") +
         byDay[d].map(function (it) {
-          var type = normType(it.type), tag = it.tag || TAGS[type];
-          var dot = type === "general" || type === "end" ? "wrap" : type;
-          var tagCls = type === "general" ? "wrap" : type === "end" ? "wrap" : type;
-          return '<div class="item"><div class="dot dot-' + dot + '"></div>' +
+          var type = normType(it.type), tagCls = type === "general" || type === "end" ? "wrap" : type;
+          return '<div class="item"><span class="tag tag-' + tagCls + '">' + esc(TAGS[type]) + "</span>" +
             '<div class="time-col">' + esc(it.start) + (it.end ? '<span class="end-time">→ ' + esc(it.end) + "</span>" : "") + "</div>" +
-            '<div class="item-info"><div class="item-name">' + esc(it.title) + (tag ? ' <span class="tag tag-' + tagCls + '">' + esc(tag) + "</span>" : "") + "</div>" +
+            '<div class="item-info"><div class="item-name">' + esc(it.title) + "</div>" +
             (it.details ? '<div class="item-sub">' + esc(it.details) + "</div>" : "") + "</div></div>";
         }).join("") + "</div>";
     }).join("");

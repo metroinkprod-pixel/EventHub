@@ -1,13 +1,19 @@
 // Shared helpers for the staff tools: Supabase connection, staff PIN,
 // live updates, toasts, time parsing and Google Sheets paste parsing.
 (function () {
-  var PIN_KEY = "ops-pin";
+  var PIN_KEY = "ops-pin", ROLE_KEY = "ops-role";
+  var RANK = { volunteer: 1, staff: 2, owner: 3 };
+  var ROLE_NAME = { volunteer: "Volunteer", staff: "Staff", owner: "Owner" };
   var cfg = (window.HUB && window.HUB.ops) || {};
   var Ops = window.Ops = {
-    sb: null, pin: null, configured: false,
+    sb: null, pin: null, role: null, configured: false,
     onLockChange: function () {}
   };
-  try { Ops.pin = localStorage.getItem(PIN_KEY); } catch (e) {}
+  try { Ops.pin = localStorage.getItem(PIN_KEY); Ops.role = localStorage.getItem(ROLE_KEY) || null; } catch (e) {}
+  // Does this device's PIN reach at least this level? ("volunteer" | "staff" | "owner")
+  Ops.can = function (min) { return !!Ops.pin && (RANK[Ops.role] || 0) >= (RANK[min] || 9); };
+  Ops.roleName = function () { return ROLE_NAME[Ops.role] || "Signed in"; };
+  Ops.roleKnown = function () { return !!Ops.role; };
 
   Ops.configured = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY &&
     cfg.SUPABASE_URL.indexOf("YOUR-") < 0 && cfg.SUPABASE_ANON_KEY.indexOf("YOUR-") < 0);
@@ -107,7 +113,7 @@
   function buildPinDialog() {
     dlg = document.createElement("dialog");
     dlg.className = "pin";
-    dlg.innerHTML = '<form method="dialog"><h2>Enter staff PIN</h2><p class="muted small">You only need to do this once on this device. It works for every staff tool in the hub.</p>' +
+    dlg.innerHTML = '<form method="dialog"><h2>Enter your PIN</h2><p class="muted small">Volunteer, staff or owner PIN. You only need to do this once on this device.</p>' +
       '<input class="pin-input" type="password" inputmode="numeric" autocomplete="off" aria-label="Staff PIN">' +
       '<div class="err" aria-live="polite"></div><div class="row"><button type="button" class="btn ghost" data-x>Cancel</button><button class="btn primary">Unlock</button></div></form>';
     document.body.appendChild(dlg);
@@ -120,8 +126,8 @@
       var res = await Ops.sb.rpc("ops_verify", { p_pin: v });
       if (res.error) { err.textContent = "Couldn’t reach the server. Check your connection."; return; }
       if (!res.data.ok) { err.textContent = res.data.error === "locked" ? "Too many wrong PINs. Try again in 5 minutes." : "Wrong PIN."; return; }
-      Ops.pin = v;
-      try { localStorage.setItem(PIN_KEY, v); } catch (e2) {}
+      Ops.pin = v; Ops.role = res.data.role || "volunteer";
+      try { localStorage.setItem(PIN_KEY, v); localStorage.setItem(ROLE_KEY, Ops.role); } catch (e2) {}
       dlg.close();
       Ops.updateLock();
       var act = pending; pending = null;
@@ -140,17 +146,17 @@
   };
   Ops.guard = function (fn) { if (Ops.unlocked()) fn(); else Ops.askPin(fn); };
   Ops.lock = function () {
-    Ops.pin = null;
-    try { localStorage.removeItem(PIN_KEY); } catch (e) {}
+    Ops.pin = null; Ops.role = null;
+    try { localStorage.removeItem(PIN_KEY); localStorage.removeItem(ROLE_KEY); } catch (e) {}
     Ops.updateLock();
   };
   Ops.updateLock = function () {
     var b = document.getElementById("lockBtn");
     if (b) {
-      b.textContent = Ops.unlocked() ? "Unlocked · Lock" : "🔒 Staff PIN";
+      b.textContent = Ops.unlocked() ? Ops.roleName() + " · Lock" : "🔒 Enter PIN";
       b.classList.toggle("on", Ops.unlocked());
     }
-    try { window.dispatchEvent(new CustomEvent("ops-lock-change", { detail: { unlocked: Ops.unlocked() } })); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent("ops-lock-change", { detail: { unlocked: Ops.unlocked(), role: Ops.role } })); } catch (e) {}
     Ops.onLockChange();
   };
   Ops.bindLock = function () {
@@ -158,24 +164,33 @@
     if (b) b.onclick = function () { if (Ops.unlocked()) Ops.lock(); else Ops.askPin(); };
     Ops.updateLock();
   };
+  // Re-check the saved PIN's level with the server (PINs can be changed by the owner).
   Ops.checkSavedPin = async function () {
     if (!Ops.pin || !Ops.sb) return;
     var res = await Ops.sb.rpc("ops_verify", { p_pin: Ops.pin });
-    if (res.data && !res.data.ok && res.data.error === "bad_pin") Ops.lock();
+    if (!res.data) return;
+    if (!res.data.ok) { if (res.data.error === "bad_pin") Ops.lock(); return; }
+    if (res.data.role !== Ops.role) {
+      Ops.role = res.data.role;
+      try { localStorage.setItem(ROLE_KEY, Ops.role); } catch (e) {}
+      Ops.updateLock();
+    }
   };
 
   var MESSAGES = {
     locked: "Too many wrong PINs on this hub. Wait 5 minutes.",
     empty: "That needs a name or description.",
     name_taken: "There’s already a team with that name.",
-    pin_too_short: "The new PIN needs at least 4 characters."
+    pin_too_short: "The new PIN needs at least 4 characters.",
+    pin_in_use: "That PIN is already used for another level. Pick a different one.",
+    forbidden: "Your PIN can’t do that. Ask a staff member or the owner."
   };
   // Call a PIN-protected database function. Throws an Error with a readable message.
   Ops.rpc = async function (name, args) {
     var res = await Ops.sb.rpc(name, Object.assign({ p_pin: Ops.pin }, args || {}));
     if (res.error) throw new Error("Couldn’t save. Check your connection and try again.");
     if (!res.data.ok) {
-      if (res.data.error === "bad_pin") { Ops.lock(); throw new Error("The staff PIN has changed. Enter the new PIN to keep editing."); }
+      if (res.data.error === "bad_pin") { Ops.lock(); throw new Error("Your PIN has changed. Enter the new PIN to keep going."); }
       throw new Error(MESSAGES[res.data.error] || ("That didn’t go through (" + res.data.error + ")."));
     }
     return res.data;
@@ -210,8 +225,12 @@
   };
   Ops.lockedHtml = function (what) {
     return '<section class="panel" style="text-align:center;padding:36px 16px"><div style="font-size:2rem">🔒</div>' +
-      '<h2 style="margin:8px 0 6px">Staff only</h2><p class="muted" style="margin:0 0 16px">Enter the staff PIN to see ' + Ops.esc(what) + '. You only need to do this once on this device.</p>' +
-      '<button class="btn primary" data-act="unlock">Enter staff PIN</button></section>';
+      '<h2 style="margin:8px 0 6px">Staff and volunteers only</h2><p class="muted" style="margin:0 0 16px">Enter your PIN to see ' + Ops.esc(what) + '. You only need to do this once on this device.</p>' +
+      '<button class="btn primary" data-act="unlock">Enter PIN</button></section>';
+  };
+  Ops.noAccessHtml = function (what) {
+    return '<section class="panel" style="text-align:center;padding:36px 16px"><div style="font-size:2rem">🚫</div>' +
+      '<h2 style="margin:8px 0 6px">Not available with your PIN</h2><p class="muted" style="margin:0">' + Ops.esc(what) + '</p></section>';
   };
 
   // Don't redraw under someone's fingers while they type.

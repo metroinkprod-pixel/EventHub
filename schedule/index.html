@@ -125,7 +125,7 @@
   .link-pill.twitch svg { color: #9146ff; }
   .link-pill.discord svg { color: #5865f2; }
   .link-pill.twitter svg { color: var(--t-ink); }
-  .link-pill.bluesky svg { color: var(--t-accent); }
+  .link-pill.bluesky svg { color: #1185fe; }
   .link-pill.startgg svg { color: var(--t-highlight); }
 
   /* Nav */
@@ -181,7 +181,7 @@
   .day-block { margin-bottom: 2rem; }
 
   .day-label {
-    font-size: 0.7rem;
+    font-size: 0.95rem;
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -283,6 +283,11 @@
   .hero::before { background: var(--t-pattern) !important; }
   .stage-tab.active, .subnav a.active { color: var(--t-accent-ink); }
   .stage-tab.active { color: var(--t-highlight-ink); }
+  /* Type badge (Main event / General / Social) replaces the dot, left of the time */
+  .item { display: grid; grid-template-columns: 6.4rem 4.9rem 1fr; gap: 10px; align-items: start; }
+  .item > .tag { justify-self: stretch; text-align: center; margin-top: 1px; line-height: 1.5; }
+  .time-col { min-width: 0; }
+  @media (max-width: 380px) { .item { grid-template-columns: 5.6rem 4.4rem 1fr; gap: 8px; } .item > .tag { font-size: .6rem; padding: 2px 4px; } }
 </style>
 </head>
 <body>
@@ -324,10 +329,6 @@
       </a>
     </div>
   </div>
-  <nav class="subnav">
-    <a href="/schedule/" class="active">Schedule</a>
-    <a href="/maps/" class="inactive">Map List</a>
-  </nav>
 </div>
 
 <div class="schedule" id="schedule">
