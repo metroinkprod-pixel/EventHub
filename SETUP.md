@@ -11,7 +11,7 @@ One website for players and staff:
 | `/run-of-show/` | Staff | Live run of show, timeline, “My shifts”, Sheets import |
 | `/checkin/` | Staff | Tournament team check-in, Switch 2 tracking, Sheets / start.gg import |
 
-Anyone with the link can **view** the staff pages. Changing anything needs the **staff PIN** (entered once per device, shared by run of show and check-in).
+**Staff data is private.** The run of show, My shifts and check-in show nothing until the device enters the **staff PIN** (once per device, shared by both tools). Attendees don't see the staff links in the menu or on the hub; staff tap **Staff sign-in** at the bottom of the hub.
 
 ---
 
@@ -74,11 +74,26 @@ Run of show → **Tools** → **Running late?** moves every unfinished block fro
 
 Write owners the way your sheet does: `Deed / Law`, `Raven (Station 1) / Piko (Mainstage)`. Names are split on `/`, `,` and `&`; text in brackets is shown as that person’s spot in **My shifts**. Blocks with no owner, `TBD` or `?` are flagged.
 
+## Privacy: who sees what
+
+| | Attendees | Staff with the PIN |
+|---|---|---|
+| Hub, schedule, maps, station board | ✓ | ✓ |
+| Free play: My spot, Stations, Standings | ✓ | ✓ |
+| Staff links in the menu and on the hub | Hidden | ✓ |
+| Run of show, My shifts, check-in data | Locked (the database refuses without the PIN) | ✓ |
+| Free play staff tab | Hidden | ✓ (still needs the matchmaker's own PIN) |
+
+- The staff data is protected by the database itself, not just hidden on the page.
+- The matchmaker is a separate system with its own PIN. Player names, teams and scores there stay public on purpose, because players use them on their phones. You can set the matchmaker PIN to the same number as the staff PIN to make life easier.
+- Staff pages check for changes every 4 seconds instead of instantly, because private data can't use Supabase's realtime feed.
+- **Sign out** on a shared device (the lock button on a staff page, or the hub's footer button) so the next person can't see staff data.
+
 ## Troubleshooting
 
 - **“Almost ready”** on a staff page: `site-config.js` still has placeholders.
 - **“Couldn’t load”**: check the URL/key in `site-config.js` and that `ops-setup.sql` ran without errors.
-- **Status shows “Reconnecting”**: live updates dropped; pages still refresh every minute. Check the venue Wi-Fi.
+- **Status shows “Offline, retrying…”**: the page can't reach Supabase. Check the venue Wi-Fi; it reconnects on its own.
 - **Station board empty**: check `EVENT_ID` and `STARTGG_API_KEY` in Vercel, then redeploy. Sets only show once they’re assigned a station on start.gg, and the event has to be live (see the original README).
 - **Wrong PIN 8 times** locks editing for 5 minutes.
 - **Change the PIN**: Run of show → Tools → Change staff PIN.

@@ -31,6 +31,18 @@ h2.staff::before { content: ""; display: inline-block; width: 8px; height: 8px; 
 .card.staff { border-color: #3c3424; }
 .card.staff:hover { border-color: var(--staff); }
 footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 2rem; }
+.staffbtn { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 99px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.staffbtn:hover { color: var(--ink); border-color: var(--staff); }
+/* PIN dialog (shared with staff tools) */
+dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); padding: 20px; width: min(340px, calc(100% - 32px)); }
+dialog::backdrop { background: rgb(0 0 0 / .55); }
+dialog h2 { margin: 0 0 6px; font-size: 1.1rem; letter-spacing: 0; text-transform: none; color: var(--ink); }
+dialog p { margin: 0 0 12px; color: var(--muted); font-size: .9rem; }
+dialog input { width: 100%; font-size: 1.4rem; letter-spacing: .3em; text-align: center; padding: 8px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+dialog .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+dialog .btn { font: inherit; font-weight: 700; padding: 7px 14px; border-radius: 9px; border: 1px solid var(--line); background: none; color: var(--ink); cursor: pointer; }
+dialog .btn.primary { background: var(--cyan); border-color: var(--cyan); color: #0a1628; }
+dialog .err { color: #ff8a8a; font-size: .9rem; min-height: 1.3em; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -49,7 +61,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
       <a class="card" href="/matchmaker/"><span class="ic">🎮</span><b>Free play</b><span>Check in for scrims on open stations</span></a>
     </div>
   </section>
-  <section>
+  <section id="staff" hidden>
     <h2 class="staff">Staff</h2>
     <div class="grid">
       <a class="card staff" href="/run-of-show/"><span class="ic">⏱️</span><b>Run of show</b><span id="ros-peek">What’s happening now and who’s on it</span></a>
@@ -59,7 +71,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
     </div>
   </section>
 </main>
-<footer>Staff tools need the staff PIN to make changes.</footer>
+<footer><button id="staffBtn" class="staffbtn">Staff sign-in</button></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="/site-config.js"></script>
@@ -74,24 +86,31 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
   document.getElementById("links").innerHTML = Object.keys(names).filter(function (k) { return L[k]; }).map(function (k) {
     return '<a href="' + O.esc(L[k]) + '" target="_blank" rel="noopener">' + names[k] + "</a>";
   }).join("");
-  if (!O.configured || !O.sb) return;
+  var section = document.getElementById("staff"), btn = document.getElementById("staffBtn"), timer = null;
+  function sync() {
+    var on = O.unlocked();
+    section.hidden = !on;
+    btn.textContent = on ? "Staff: signed in · Sign out" : "Staff sign-in";
+    clearInterval(timer);
+    if (on && O.configured) { peek(); timer = setInterval(peek, 60000); }
+  }
+  btn.onclick = function () {
+    if (!O.configured) { alert("The staff tools aren’t set up yet. Add the Supabase details to site-config.js."); return; }
+    if (O.unlocked()) O.lock(); else O.askPin();
+  };
+  O.onLockChange = sync;
   async function peek() {
     try {
-      var d = await O.load({ ops_ros: "sort", ops_teams: "sort" }), n = O.nowMin();
-      var live = d.ops_ros.filter(function (r) {
-        if (r.status === "done" || r.status === "skipped") return false;
-        if (r.status === "live") return true;
-        var end = r.end_min != null ? r.end_min : (r.start_min != null ? r.start_min + 15 : null);
-        return r.section === "day" && r.start_min != null && r.start_min <= n && n < end;
-      });
+      var res = await O.sb.rpc("ops_summary", { p_pin: O.pin, p_now: O.nowMin() });
+      if (res.error || !res.data.ok) { if (res.data && res.data.error === "bad_pin") O.lock(); return; }
+      var live = res.data.live || [];
       document.getElementById("ros-peek").innerHTML = live.length
-        ? '<span class="live">Now:</span> ' + O.esc(live.slice(0, 2).map(function (r) { return r.task; }).join(" · ")) + (live.length > 2 ? " +" + (live.length - 2) + " more" : "")
+        ? '<span class="live">Now:</span> ' + O.esc(live.slice(0, 2).join(" · ")) + (live.length > 2 ? " +" + (live.length - 2) + " more" : "")
         : "Nothing scheduled right now";
-      var t = d.ops_teams;
-      if (t.length) document.getElementById("ci-peek").innerHTML = '<span class="live">' + t.filter(function (x) { return x.status === "checked_in"; }).length + " / " + t.length + "</span> teams checked in";
+      if (res.data.teams) document.getElementById("ci-peek").innerHTML = '<span class="live">' + res.data.checked_in + " / " + res.data.teams + "</span> teams checked in";
     } catch (e) {}
   }
-  peek(); setInterval(peek, 60000);
+  sync();
 })();
 </script>
 </body>
