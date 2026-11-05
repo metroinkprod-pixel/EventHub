@@ -36,7 +36,7 @@ window.HUB = {
      { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
      { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
      { title: "Art Show", text: "Check out the art on display throughout the venue." },
-     { title: "Merch Desk", text: "Shirts, stickers and more by the entrance." }
+     { title: "Merch Desk", text: "Shirts, stickers and more past the stage area." }
    ],  // Links shown on the hub home page. Leave a link "" to hide it.
   links: {
     stream:  "https://twitch.tv/GenGame",
