@@ -4,6 +4,21 @@
   var box = document.getElementById("schedule");
   var TAGS = { main: "Main event", side: "Side event", social: "Social", end: "End of day", general: "General" };
 
+  // Long words and links wrap instead of running off the screen on phones.
+  var st = document.createElement("style");
+  st.textContent = ".item-info{min-width:0}.item-name,.item-sub{overflow-wrap:anywhere;word-break:break-word}" +
+    ".item-sub a{color:var(--t-accent);font-weight:600;text-decoration:underline;text-underline-offset:2px}";
+  document.head.appendChild(st);
+
+  // Turn web addresses in Details into tappable links showing just the site name ("pollunit.com ↗").
+  function linkify(text) {
+    return esc(text).replace(/\bhttps?:\/\/[^\s<]+[^\s<.,;:!?)\]'"]/g, function (url) {
+      var raw = url.replace(/&amp;/g, "&"), host = raw;
+      try { host = new URL(raw).hostname.replace(/^www\./, ""); } catch (e) {}
+      return '<a href="' + url + '" target="_blank" rel="noopener">' + esc(host) + " ↗</a>";
+    });
+  }
+
   function esc(x) { return String(x == null ? "" : x).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function parseCsv(text) {
     text = String(text || "").replace(/\r\n?/g, "\n");
@@ -61,7 +76,7 @@
           return '<div class="item"><span class="tag tag-' + tagCls + '">' + esc(TAGS[type]) + "</span>" +
             '<div class="time-col">' + esc(it.start) + (it.end ? '<span class="end-time">→ ' + esc(it.end) + "</span>" : "") + "</div>" +
             '<div class="item-info"><div class="item-name">' + esc(it.title) + "</div>" +
-            (it.details ? '<div class="item-sub">' + esc(it.details) + "</div>" : "") + "</div></div>";
+            (it.details ? '<div class="item-sub">' + linkify(it.details) + "</div>" : "") + "</div></div>";
         }).join("") + "</div>";
     }).join("");
   }
