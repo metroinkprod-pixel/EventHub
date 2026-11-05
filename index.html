@@ -34,7 +34,7 @@ h2 { margin: 0 0 .7rem; font-family: var(--t-display); font-size: .95rem; letter
 .card .live { color: var(--gold); font-weight: 700; }
 .card.staff { border-color: color-mix(in srgb, var(--t-warn) 30%, var(--t-line)); }
 .card.staff:hover { border-color: var(--staff); }
-.card[hidden] { display: none; }
+.card[hidden], section[hidden], .also[hidden] { display: none; }
 /* Activities */
 .acts { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .act { display: grid; gap: 6px; align-content: start; background: var(--card); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 16px; }
@@ -47,6 +47,17 @@ h2 { margin: 0 0 .7rem; font-family: var(--t-display); font-size: .95rem; letter
 .act a.go { justify-self: start; margin-top: 4px; text-decoration: none; font-weight: 700; font-size: .9rem; padding: 7px 14px; border-radius: var(--t-radius-sm);
   background: var(--t-accent); color: var(--t-accent-ink); }
 .act a.go:hover { filter: brightness(1.1); }
+.act .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.act .btns a.go { margin-top: 0; }
+.act .btns a.go.alt { background: none; color: var(--t-ink); border: 1px solid var(--line); }
+.act .btns a.go.alt:hover { border-color: var(--t-accent); filter: none; }
+.also { margin-top: 12px; background: var(--card); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 14px 16px; }
+.also h3 { margin: 0 0 6px; font: 700 .8rem var(--t-font); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.also ul { list-style: none; margin: 0; padding: 0; }
+.also li { padding: 9px 0; border-top: 1px solid var(--line); }
+.also li:first-child { border-top: 0; }
+.also li b { display: block; font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+.also li span { color: var(--muted); font-size: .92rem; }
 footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 2rem; }
 </style>
 </head>
@@ -58,7 +69,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
   <div class="links" id="links"></div>
 </header>
 <main>
-  <section>
+  <section id="everyone">
     <h2>For everyone</h2>
     <div class="grid">
       <a class="card" href="/schedule/"><span class="ic">🗓️</span><b>Schedule</b><span>When everything happens</span></a>
@@ -70,6 +81,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
   <section id="activities" hidden>
     <h2>Today’s activities</h2>
     <div class="grid acts" id="actList"></div>
+    <div class="also" id="alsoList" hidden><h3>Also today</h3><ul></ul></div>
   </section>
   <section id="staff" hidden>
     <h2 class="staff">Staff</h2>
@@ -92,21 +104,39 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
   var H = window.HUB || {}, O = window.Ops;
   // Heading = "Big Dapple Event Hub" (set by theme.js from shortName in site-config.js)
   document.getElementById("ev").textContent = window.HUB_PAGE_TITLE || H.eventName || "Event Hub";
-  // Today's activities (the "activities" list in site-config.js)
+  // Today's activities (the "activities" list in site-config.js).
+  // Activities with links become cards (main event first); ones without links go in a short "Also today" list.
   var acts = Array.isArray(H.activities) ? H.activities.filter(function (a) { return a && a.title; }) : [];
+  function linksOf(a) {
+    var list = Array.isArray(a.links) ? a.links.slice() : [];
+    if (a.link) list.unshift({ text: a.linkText || "Open", href: a.link });
+    return list.filter(function (l) { return l && l.href && /^(https?:\/\/|\/)/i.test(l.href); });
+  }
   if (acts.length) {
-    document.getElementById("actList").innerHTML = acts.map(function (a) {
-      var link = a.link && /^(https?:\/\/|\/)/i.test(a.link) ? a.link : "";
-      var ext = /^https?:/i.test(link);
+    var withLinks = acts.filter(function (a) { return a.main || linksOf(a).length; });
+    withLinks.sort(function (x, y) { return (y.main ? 1 : 0) - (x.main ? 1 : 0); });
+    var plain = acts.filter(function (a) { return !a.main && !linksOf(a).length; });
+    document.getElementById("actList").innerHTML = withLinks.map(function (a) {
+      var ls = linksOf(a);
       return '<div class="act' + (a.main ? " main" : "") + '">' +
         (a.main ? '<span class="k">Main event</span>' : (a.tag ? '<span class="k">' + O.esc(a.tag) + "</span>" : "")) +
         "<b>" + O.esc(a.title) + "</b>" +
         (a.when ? '<span class="when">' + O.esc(a.when) + "</span>" : "") +
         (a.text ? "<p>" + O.esc(a.text) + "</p>" : "") +
-        (link ? '<a class="go" href="' + O.esc(link) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(a.linkText || "Open") + "</a>" : "") +
-        "</div>";
+        (ls.length ? '<div class="btns">' + ls.map(function (l, i) {
+          var ext = /^https?:/i.test(l.href);
+          return '<a class="go' + (i ? " alt" : "") + '" href="' + O.esc(l.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(l.text || "Open") + "</a>";
+        }).join("") + "</div>" : "") + "</div>";
     }).join("");
+    if (plain.length) {
+      var also = document.getElementById("alsoList");
+      also.querySelector("ul").innerHTML = plain.map(function (a) {
+        return "<li><b>" + O.esc(a.title) + "</b>" + (a.when || a.text ? "<span>" + O.esc([a.when, a.text].filter(Boolean).join(" · ")) + "</span>" : "") + "</li>";
+      }).join("");
+      also.hidden = false;
+    }
     document.getElementById("activities").hidden = false;
+    document.getElementById("everyone").hidden = true;   // the main event card links to the schedule, maps and stations instead
   }
 
   // Event logo (same one as the schedule and map list: "logo" in site-config.js)
