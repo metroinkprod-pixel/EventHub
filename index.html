@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Event Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦑</text></svg>">
+<style>
+:root { --bg: #0d1a2e; --card: #13233d; --line: #22395c; --ink: #e8edf5; --muted: #a8bdd4; --cyan: #00b4e6; --gold: #f5c518; --staff: #f2b04f; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+.hero { padding: 2.2rem 1.25rem 1.6rem; text-align: center; border-bottom: 2px solid var(--cyan);
+  background: linear-gradient(180deg, #0a1628, var(--bg)); }
+.hero h1 { margin: 0; font-size: clamp(1.8rem, 6vw, 2.6rem); font-weight: 800; color: var(--gold); letter-spacing: -.01em; }
+.hero p { margin: .4rem 0 0; color: var(--muted); }
+.links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+.links a { color: var(--muted); text-decoration: none; border: 1px solid var(--line); border-radius: 99px; padding: 5px 14px; font-weight: 600; font-size: .9rem; }
+.links a:hover { color: var(--ink); border-color: var(--cyan); }
+main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; display: grid; gap: 1.8rem; }
+h2 { margin: 0 0 .7rem; font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h2.staff::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--staff); margin-right: 8px; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+.card { display: grid; gap: 4px; align-content: start; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
+  color: inherit; text-decoration: none; transition: border-color .15s, transform .1s; min-height: 110px; }
+.card:hover { border-color: var(--cyan); }
+.card:active { transform: scale(.98); }
+.card .ic { font-size: 1.6rem; line-height: 1; }
+.card b { font-size: 1.08rem; margin-top: 6px; }
+.card span { color: var(--muted); font-size: .9rem; }
+.card .live { color: var(--gold); font-weight: 700; }
+.card.staff { border-color: #3c3424; }
+.card.staff:hover { border-color: var(--staff); }
+footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bottom: 2rem; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <h1 id="ev">Event Hub</h1>
+  <p id="date"></p>
+  <div class="links" id="links"></div>
+</header>
+<main>
+  <section>
+    <h2>For everyone</h2>
+    <div class="grid">
+      <a class="card" href="/schedule/"><span class="ic">🗓️</span><b>Schedule</b><span>When everything happens</span></a>
+      <a class="card" href="/maps/"><span class="ic">🗺️</span><b>Map list</b><span>Maps and modes by round</span></a>
+      <a class="card" href="/stations/"><span class="ic">📺</span><b>Station board</b><span>Live matches and scores from start.gg</span></a>
+      <a class="card" href="/matchmaker/"><span class="ic">🎮</span><b>Free play</b><span>Check in for scrims on open stations</span></a>
+    </div>
+  </section>
+  <section>
+    <h2 class="staff">Staff</h2>
+    <div class="grid">
+      <a class="card staff" href="/run-of-show/"><span class="ic">⏱️</span><b>Run of show</b><span id="ros-peek">What’s happening now and who’s on it</span></a>
+      <a class="card staff" href="/run-of-show/?view=mine"><span class="ic">🙋</span><b>My shifts</b><span>Just your blocks for the day</span></a>
+      <a class="card staff" href="/checkin/"><span class="ic">✅</span><b>Tournament check-in</b><span id="ci-peek">Teams, players and Switch 2s</span></a>
+      <a class="card staff" href="/matchmaker/#staff"><span class="ic">🔀</span><b>Free play (staff)</b><span>Start matches, record scores</span></a>
+    </div>
+  </section>
+</main>
+<footer>Staff tools need the staff PIN to make changes.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="/site-config.js"></script>
+<script src="/shared/ops.js"></script>
+<script src="/nav.js"></script>
+<script>
+(function () {
+  var H = window.HUB || {}, O = window.Ops;
+  if (H.eventName) { document.getElementById("ev").textContent = H.eventName; document.title = H.eventName + " · Hub"; }
+  document.getElementById("date").textContent = H.eventDate || "";
+  var L = H.links || {}, names = { stream: "📺 Livestream", discord: "💬 Discord", startgg: "🏆 start.gg" };
+  document.getElementById("links").innerHTML = Object.keys(names).filter(function (k) { return L[k]; }).map(function (k) {
+    return '<a href="' + O.esc(L[k]) + '" target="_blank" rel="noopener">' + names[k] + "</a>";
+  }).join("");
+  if (!O.configured || !O.sb) return;
+  async function peek() {
+    try {
+      var d = await O.load({ ops_ros: "sort", ops_teams: "sort" }), n = O.nowMin();
+      var live = d.ops_ros.filter(function (r) {
+        if (r.status === "done" || r.status === "skipped") return false;
+        if (r.status === "live") return true;
+        var end = r.end_min != null ? r.end_min : (r.start_min != null ? r.start_min + 15 : null);
+        return r.section === "day" && r.start_min != null && r.start_min <= n && n < end;
+      });
+      document.getElementById("ros-peek").innerHTML = live.length
+        ? '<span class="live">Now:</span> ' + O.esc(live.slice(0, 2).map(function (r) { return r.task; }).join(" · ")) + (live.length > 2 ? " +" + (live.length - 2) + " more" : "")
+        : "Nothing scheduled right now";
+      var t = d.ops_teams;
+      if (t.length) document.getElementById("ci-peek").innerHTML = '<span class="live">' + t.filter(function (x) { return x.status === "checked_in"; }).length + " / " + t.length + "</span> teams checked in";
+    } catch (e) {}
+  }
+  peek(); setInterval(peek, 60000);
+})();
+</script>
+</body>
+</html>

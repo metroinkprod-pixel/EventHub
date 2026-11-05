@@ -1,0 +1,239 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.header {
+  background-color: #111;
+  padding: 0 16px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.logo-placeholder {
+  background-color: #333;
+  color: #888;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+.event-name {
+  font-size: 40px;
+  font-weight: bold;
+  color: #ea602e;
+}
+
+.clock {
+  background-color: #222;
+  color: #ea602e;
+  font-size: 40px;
+  padding: 8px 16px;
+  border-radius: 4px;
+}
+
+/* BRACKET LABEL */
+.bracket-label {
+  padding: 4px 16px;
+  font-size: 30px;
+  border-left: 5px solid;
+}
+.groups {
+  background-color: #0a1a2a;
+  color: #4a9eff;
+  border-color: #4a9eff;
+}
+.match-row.completed {
+  opacity: 0.5;
+}
+
+.match-row.completed .station-bullet {
+  background-color: #555;
+  color: #999;
+}
+.bronze {
+  background-color: #1a1208;
+  color: #cd7f32;
+  border-color: #cd7f32;
+}
+
+.redemption {
+  background-color: #0a1a0a;
+  color: #4aaa4a;
+  border-color: #4aaa4a;
+}
+
+.side {
+  background-color: #1a1a1a;
+  color: #888888;
+  border-color: #888888;
+}
+.top8 {
+  background-color: #1f1a00;
+  color: #ffcc00;
+  border-color: #ffcc00;
+}
+
+/* MATCH ROW */
+.match-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  flex: 1;
+  background-color: #242424;
+}
+
+.matches {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+/* STATION BULLET */
+.station-bullet {
+  background-color: #ea602e;
+  color: #fff04c;
+  font-size: 100px;
+  font-weight: bold;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* TEAMS */
+.team {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  place-items: center;
+  min-width: 0;
+}
+
+.team-name {
+  font-size: 35px;
+  font-weight: bold;
+}
+
+.players {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 90%;
+  font-size: 25px;
+  color: #888888;
+  overflow:hidden;
+}
+
+.team.right {
+  text-align: right;
+}
+
+
+/* SCORES */
+.scores {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.score {
+  background-color: #111;
+  color: #ffcc00;
+  font-size: 38px;
+  font-weight: bold;
+  width: 64px;
+  height: 72px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-divider {
+  color: #fff;
+  font-size: 20px;
+}
+
+/* STREAM FOOTER */
+.stream-footer {
+  background-color: #0e0e0e;
+  border-top: 1px solid #333;
+  height: 100px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 25px;
+  padding: 0 16px;
+  margin-top: auto;
+  font-size: 30px;
+}
+
+.twitch-badge {
+  background-color: #9146ff;
+  color: #fff;
+  font-size: 30px;
+  font-weight: bold;
+  padding: 4px 20px;
+  border-radius: 3px;
+}
+
+.twitch-link {
+  color: #9146ff;
+  font-size: 30px;
+}
+
+.on-stream {
+  color: #cccccc;
+  font-size: 30px;
+}
+
+.event-logo {
+  height: 100px;
+  width: 100px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+.match-row {
+  border-bottom: 3px solid #444;
+}
+.gengame-logo {
+  height: 64px;
+  object-fit: contain;
+}
+/* Added: Silver bracket label (used by the server's phase styles) */
+.silver {
+  background-color: #1a1a22;
+  color: #aaaacc;
+  border-color: #aaaacc;
+}

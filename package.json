@@ -1,0 +1,11 @@
+{
+  "name": "event-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Event hub: schedule, map list, station board, free-play matchmaker, run of show and tournament check-in.",
+  "scripts": {
+    "dev": "vercel dev",
+    "fetch-roster": "node --env-file=.env scripts/fetch-roster.js"
+  },
+  "engines": { "node": ">=18" }
+}

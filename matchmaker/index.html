@@ -1,0 +1,773 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tournament Matchmaker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky header with tabs, single centered column (max 1120px); grids collapse to one column on phones. */
+:root {
+  --bg: #F2F3EF; --surface: #FFFFFF; --sunk: #E8EAE4; --ink: #15191E; --muted: #5C646D; --line: #D8DBD3;
+  --accent: #D44A12; --accent-ink: #FFFFFF; --go: #0E7A5C; --go-soft: #DDF1E9; --warn: #9A6A00; --warn-soft: #FBEFD2;
+  --stop: #B9332B; --stop-soft: #F8E1DF; --a: #2556C4; --a-soft: #E2EAFB; --b: #B4620A; --b-soft: #FBEBD6;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r: 10px; --head: #15191E; --head-ink: #F2F3EF;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E1114; --surface: #171B20; --sunk: #1F242A; --ink: #E8EBEE; --muted: #9AA3AD; --line: #2B3138;
+    --accent: #FF6A2B; --accent-ink: #1A0B03; --go: #3CC394; --go-soft: #13302A; --warn: #E7B547; --warn-soft: #33290F;
+    --stop: #F06A60; --stop-soft: #3A1A18; --a: #77A0FF; --a-soft: #1A2742; --b: #F3A646; --b-soft: #3A2810;
+    --head: #07090B; --head-ink: #E8EBEE;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+.num, td.n { font-variant-numeric: tabular-nums; }
+
+header.top { position: sticky; top: 0; z-index: 20; background: var(--head); color: var(--head-ink); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0px); }
+.top-inner { max-width: 1120px; margin: 0 auto; padding: 10px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); }
+.brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.brand h1 { font: 700 24px/1.1 var(--display); letter-spacing: .02em; text-transform: uppercase; margin: 0; }
+.live { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; display: inline-flex; align-items: center; gap: 6px; }
+.live i { width: 8px; height: 8px; border-radius: 50%; background: #3CC394; display: inline-block; }
+.live.off i { background: #E7B547; }
+nav.tabs { display: flex; gap: 2px; overflow-x: auto; margin-top: 8px; scrollbar-width: none; }
+nav.tabs a { font: 600 17px var(--display); letter-spacing: .06em; text-transform: uppercase; color: inherit; opacity: .65; text-decoration: none; padding: 8px 14px 10px; border-bottom: 3px solid transparent; white-space: nowrap; }
+@media (max-width: 440px) { nav.tabs { gap: 0; } nav.tabs a { padding: 8px 7px 10px; font-size: 15px; letter-spacing: .03em; } }
+nav.tabs a[aria-current="page"] { opacity: 1; border-color: var(--accent); }
+nav.tabs a:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+main { max-width: 1120px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 80px max(16px, env(safe-area-inset-left, 0px)); display: grid; gap: 20px; }
+h2 { font: 700 22px/1.15 var(--display); letter-spacing: .03em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+h3 { font: 600 18px/1.2 var(--display); letter-spacing: .03em; text-transform: uppercase; margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.muted { color: var(--muted); }
+.small { font-size: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+.stack { display: grid; gap: 10px; }
+.grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.grid-st { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); align-items: start; }
+@media (max-width: 420px) { .grid-st, .grid2 { grid-template-columns: 1fr; } }
+
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 9px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; line-height: 1.2; }
+.btn:hover { border-color: var(--muted); }
+.btn:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.go { background: var(--go); color: var(--surface); border-color: var(--go); }
+.btn.danger { color: var(--stop); }
+.btn.danger.armed { background: var(--stop); color: var(--surface); border-color: var(--stop); }
+.btn.big { font: 700 20px var(--display); letter-spacing: .05em; text-transform: uppercase; padding: 14px 18px; width: 100%; }
+.btn.sm { padding: 5px 10px; font-size: 14px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+input[type=text], input[type=number], input[type=password], input[type=search], select {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; min-width: 0; width: 100%;
+}
+label.f { display: grid; gap: 4px; font-size: 14px; font-weight: 600; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--sunk); border-radius: 9px; padding: 3px; gap: 3px; }
+.seg button { border: 0; background: transparent; padding: 9px; border-radius: 7px; font-weight: 600; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 3px 9px; border-radius: 99px; background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.pill.go { background: var(--go-soft); color: var(--go); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.stop { background: var(--stop-soft); color: var(--stop); }
+.pill.play { background: var(--a-soft); color: var(--a); }
+.pill.fa { background: transparent; border: 1px dashed var(--line); }
+
+/* Station scoreboard card */
+.st { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; display: grid; min-width: 0; }
+.st-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--sunk); gap: 8px; }
+.st-num { font: 700 20px var(--display); letter-spacing: .05em; text-transform: uppercase; }
+.st-body { padding: 12px 14px 14px; display: grid; gap: 10px; }
+.side { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 8px 10px; border-radius: 8px; border-left: 4px solid; }
+.side.a { border-color: var(--a); background: var(--a-soft); }
+.side.b { border-color: var(--b); background: var(--b-soft); }
+.side .tn { font: 700 19px/1.1 var(--display); letter-spacing: .02em; min-width: 0; overflow-wrap: anywhere; }
+.side .pl { grid-column: 1 / -1; font-size: 14px; color: var(--ink); opacity: .85; overflow-wrap: anywhere; }
+.side .pl em { font-style: normal; color: var(--muted); }
+.side .pl .wpn, .wpn { color: var(--muted); }
+.side.win { box-shadow: inset 0 0 0 2px var(--go); }
+.score-in { width: 78px !important; text-align: center; font: 700 24px var(--display) !important; padding: 4px !important; }
+.vs { text-align: center; font: 600 13px var(--display); letter-spacing: .2em; color: var(--muted); }
+.empty-st { padding: 18px 14px; color: var(--muted); }
+.proposal { border: 1px dashed var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 8px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th { text-align: left; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 8px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+td.n, th.n { text-align: right; }
+.tablewrap { overflow-x: auto; }
+tr.me td { background: var(--a-soft); }
+
+/* Player card */
+.mecard { display: grid; gap: 14px; }
+.bigstat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bigstat div { background: var(--sunk); border-radius: 8px; padding: 10px; text-align: center; }
+.bigstat b { display: block; font: 700 30px/1 var(--display); }
+.bigstat span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.status-banner { border-radius: var(--r); padding: 16px; display: grid; gap: 6px; }
+.status-banner .big { font: 700 28px/1.05 var(--display); text-transform: uppercase; letter-spacing: .02em; }
+.status-banner.play { background: var(--a); color: var(--surface); }
+.status-banner.next { background: var(--accent); color: var(--accent-ink); }
+.status-banner.wait { background: var(--sunk); }
+.status-banner.out { background: var(--sunk); color: var(--muted); }
+
+.list-plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.queue li { display: grid; grid-template-columns: 34px 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; background: var(--sunk); border-radius: 8px; }
+.queue .pos { font: 700 20px var(--display); color: var(--muted); text-align: center; }
+
+.builder-list { display: grid; gap: 4px; max-height: 360px; overflow-y: auto; }
+.builder-list .bl { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 5px 8px; border-radius: 6px; background: var(--sunk); }
+.ab { display: flex; gap: 4px; }
+.ab button { width: 38px; padding: 4px 0; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); font-weight: 700; cursor: pointer; }
+.ab button.on-a { background: var(--a); color: var(--surface); border-color: var(--a); }
+.ab button.on-b { background: var(--b); color: var(--surface); border-color: var(--b); }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 11px 16px; border-radius: 10px; max-width: min(92vw, 520px); z-index: 50; box-shadow: 0 6px 24px rgba(0,0,0,.25); font-weight: 500; }
+.toast.err { background: var(--stop); color: #fff; }
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: grid; place-items: center; z-index: 40; padding: 16px; }
+.modal { background: var(--surface); border-radius: 12px; padding: 18px; max-width: 420px; width: 100%; display: grid; gap: 12px; max-height: 90vh; overflow-y: auto; }
+.qr { background: #fff; padding: 10px; border-radius: 8px; display: grid; place-items: center; }
+.qr svg { width: 100%; max-width: 260px; height: auto; }
+.linkbox { font-size: 13px; word-break: break-all; background: var(--sunk); padding: 8px; border-radius: 6px; user-select: all; }
+.subnav { display: flex; gap: 6px; flex-wrap: wrap; }
+.subnav button { border: 1px solid var(--line); background: var(--surface); border-radius: 99px; padding: 6px 14px; font-weight: 600; cursor: pointer; }
+.subnav button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.notice { padding: 12px 14px; border-radius: 8px; background: var(--warn-soft); color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) { .toast { animation: rise .18s ease-out; } @keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><h1 id="eventName">Tournament</h1><span class="live off" id="live"><i></i><span>Connecting</span></span></div>
+    <nav class="tabs" id="tabs">
+      <a href="#me">My spot</a>
+      <a href="#board" id="tab-board">Stations</a>
+      <a href="#standings">Standings</a>
+      <a href="#staff">Staff</a>
+    </nav>
+  </div>
+</header>
+<main id="main"><div class="panel"><p class="muted">Loading…</p></div></main>
+<div id="overlay"></div>
+
+<script src="/matchmaker/config.js"></script>
+<script src="/matchmaker/matchmaker.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var CFG = window.TM_CONFIG || {};
+  var configured = CFG.SUPABASE_URL && CFG.SUPABASE_URL.indexOf('YOUR-PROJECT') < 0 && CFG.SUPABASE_ANON_KEY && CFG.SUPABASE_ANON_KEY.indexOf('YOUR-') < 0;
+  var sb = (configured && window.supabase) ? window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY) : (window.__TM_MOCK__ || null);
+
+  // ---------- state ----------
+  var S = { settings: { event_name: 'Tournament', stations: 4, station_label: 'Station', team_size: 4 }, teams: [], players: [], matches: [], loaded: false };
+  var view = 'me';
+  var staffTab = 'courts';
+  var staffPin = null;
+  var me = null;
+  var ui = { joinMode: 'free', builder: { A: new Set(), B: new Set() }, filter: '', tie: {} };
+  var PLAN = null;
+
+  function parseJSON(s) { try { return s ? JSON.parse(s) : null; } catch (e) { return null; } }
+  var store = {
+    get: function (kind, k) { try { return (kind === 'local' ? localStorage : sessionStorage).getItem(k); } catch (e) { return null; } },
+    set: function (kind, k, v) { try { var s = kind === 'local' ? localStorage : sessionStorage; v == null ? s.removeItem(k) : s.setItem(k, v); } catch (e) {} }
+  };
+  staffPin = store.get('session', 'tm_pin');
+  me = parseJSON(store.get('local', 'tm_me'));
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function $(sel) { return document.querySelector(sel); }
+  function L() { return S.settings.station_label || 'Station'; }
+  function playerById(id) { for (var i = 0; i < S.players.length; i++) if (S.players[i].id === id) return S.players[i]; return null; }
+  function teamById(id) { for (var i = 0; i < S.teams.length; i++) if (S.teams[i].id === id) return S.teams[i]; return null; }
+  function teamName(id) { var t = teamById(id); return t ? t.name : ''; }
+  function ago(ts) {
+    var m = Math.max(0, Math.round((Date.now() - Date.parse(ts)) / 60000));
+    return m < 1 ? 'just now' : m < 60 ? m + ' min' : Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+  }
+
+  // ---------- toast / modal ----------
+  var toastTimer;
+  function toast(msg, isErr) {
+    var el = document.querySelector('.toast'); if (el) el.remove();
+    el = document.createElement('div'); el.className = 'toast' + (isErr ? ' err' : ''); el.setAttribute('role', 'status'); el.textContent = msg;
+    document.body.appendChild(el); clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.remove(); }, isErr ? 5000 : 2600);
+  }
+  function modal(html) {
+    $('#overlay').innerHTML = '<div class="modal-bg" data-action="close-modal"><div class="modal" role="dialog" aria-modal="true">' + html + '</div></div>';
+  }
+  function closeModal() { $('#overlay').innerHTML = ''; }
+  function qrSvg(text) {
+    if (!window.qrcode) return '';
+    var q = window.qrcode(0, 'M'); q.addData(text); q.make(); return q.createSvgTag({ cellSize: 6, margin: 2, scalable: true });
+  }
+
+  // ---------- data ----------
+  async function rpc(fn, args) {
+    var res = await sb.rpc(fn, args);
+    if (res.error) throw new Error(res.error.message || 'Something went wrong.');
+    var d = res.data;
+    if (d && d.ok === false) {
+      if (fn.indexOf('staff_') === 0 && /PIN|locked/i.test(d.error || '')) { staffPin = null; store.set('session', 'tm_pin', null); }
+      throw new Error(d.error || 'Something went wrong.');
+    }
+    return d;
+  }
+  async function act(fn, args, okMsg) {
+    try { var d = await rpc(fn, args); if (okMsg) toast(okMsg); await refresh(); return d; }
+    catch (e) { toast(e.message, true); render(); return null; }
+  }
+
+  async function refresh() {
+    if (!sb) return;
+    try {
+      var r = await Promise.all([
+        sb.from('settings').select('*').eq('id', 1).maybeSingle(),
+        sb.from('teams').select('*').order('name'),
+        sb.from('players').select('*').order('name'),
+        sb.from('matches').select('*').order('created_at', { ascending: false }).limit(1000)
+      ]);
+      for (var i = 0; i < r.length; i++) if (r[i].error) throw r[i].error;
+      if (r[0].data) S.settings = r[0].data;
+      S.teams = r[1].data || []; S.players = r[2].data || []; S.matches = r[3].data || [];
+      S.loaded = true; setLive(true);
+      if (me && !playerById(me.id)) { me = null; store.set('local', 'tm_me', null); }
+      render();
+    } catch (e) { setLive(false); if (!S.loaded) { $('#main').innerHTML = '<div class="panel"><h2>Can\'t reach the database</h2><p class="muted">' + esc(e.message || e) + '</p><p class="small muted">Check the details in config.js and that schema.sql has been run in Supabase.</p></div>'; } }
+  }
+  var refreshTimer;
+  function soon() { clearTimeout(refreshTimer); refreshTimer = setTimeout(refresh, 200); }
+  function setLive(ok) { var el = $('#live'); el.classList.toggle('off', !ok); el.lastElementChild.textContent = ok ? 'Live' : 'Reconnecting'; }
+
+  // ---------- render ----------
+  function render() {
+    if (!S.loaded) return;
+    $('#eventName').textContent = S.settings.event_name || 'Tournament';
+    document.title = (S.settings.event_name || 'Tournament') + ' · Matchmaker';
+    PLAN = Matchmaker.plan(S);
+    $('#tab-board').textContent = L() + 's';
+    document.querySelectorAll('#tabs a').forEach(function (a) { a.setAttribute('aria-current', a.getAttribute('href') === '#' + view ? 'page' : 'false'); });
+
+    // Keep what people are typing across live refreshes.
+    var keep = {}, active = document.activeElement, activeId = active && active.id, selS, selE;
+    try { selS = active.selectionStart; selE = active.selectionEnd; } catch (e) {}
+    document.querySelectorAll('#main input[id], #main select[id]').forEach(function (el) {
+      if (el.hasAttribute('data-live')) return;
+      keep[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+
+    var html = view === 'board' ? viewBoard() : view === 'standings' ? viewStandings() : view === 'staff' ? viewStaff() : viewMe();
+    $('#main').innerHTML = html;
+
+    Object.keys(keep).forEach(function (id) {
+      var el = document.getElementById(id); if (!el || el.hasAttribute('data-live')) return;
+      if (el.type === 'checkbox') el.checked = keep[id]; else el.value = keep[id];
+    });
+    ['me-team', 'add-team'].forEach(function (id) {
+      var sel = document.getElementById(id), wrap = document.getElementById(id.replace('-team', '-newteam-wrap'));
+      if (sel && wrap) wrap.hidden = sel.value !== '__new';
+    });
+    if (activeId) { var f = document.getElementById(activeId); if (f) { f.focus(); try { if (selS != null) f.setSelectionRange(selS, selE); } catch (e) {} } }
+  }
+
+  // Player name with their weapons, e.g. "Ana R (Longsword)".
+  function nameW(p) { return esc(p.name) + (p.weapons ? ' <span class="wpn">(' + esc(p.weapons) + ')</span>' : ''); }
+  function sideHtml(m, side, opts) {
+    opts = opts || {};
+    var ids = side === 'a' ? m.a_players : m.b_players, nm = side === 'a' ? m.a_name : m.b_name;
+    var names = (side === 'a' ? m.a_names : m.b_names) || [];
+    var list = ids.map(function (id, i) { var p = playerById(id); return p ? nameW(p) : esc(names[i] || '?'); }).join(', ');
+    var win = m.status === 'done' && m.winner === side;
+    return '<div class="side ' + side + (win ? ' win' : '') + '"><div class="tn">' + esc(nm) + '</div>' + (opts.right || '') +
+      '<div class="pl">' + list + '</div></div>';
+  }
+  function squadHtml(sq, side) {
+    var list = sq.players.map(function (p) { return sq.fillIds.has(p.id) ? nameW(p) + ' <em>(fill-in)</em>' : nameW(p); }).join(', ');
+    return '<div class="side ' + side + '"><div class="tn">' + esc(sq.name) + '</div><span class="pill">' + (sq.avgGames.toFixed(1)) + ' avg games</span><div class="pl">' + list + '</div></div>';
+  }
+
+  // ----- Player view -----
+  function viewMe() {
+    if (!sb) return setupNotice();
+    var p = me && playerById(me.id);
+    if (!p) return checkInForm();
+    var spot = Matchmaker.playerSpot(PLAN, p.id);
+    var banner;
+    if (spot.state === 'playing') {
+      var m = spot.match, mySide = m.a_players.indexOf(p.id) >= 0 ? 'a' : 'b';
+      banner = '<div class="status-banner play"><span class="eyebrow" style="color:inherit;opacity:.8">You\'re playing</span><div class="big">' + esc(L()) + ' ' + m.station + '</div><div>' + esc(mySide === 'a' ? m.a_name : m.b_name) + ' vs ' + esc(mySide === 'a' ? m.b_name : m.a_name) + '</div></div>';
+    } else if (!p.checked_in) {
+      banner = '<div class="status-banner out"><div class="big">Checked out</div><div>You won\'t be put in matches until you check back in. Your games and record are saved.</div></div>';
+    } else if (spot.state === 'next') {
+      var opp = spot.proposal.a === spot.squad ? spot.proposal.b : spot.proposal.a;
+      banner = '<div class="status-banner next"><span class="eyebrow" style="color:inherit;opacity:.85">Up next</span><div class="big">' + esc(L()) + ' ' + spot.proposal.station + '</div><div>' + esc(spot.squad.name) + ' vs ' + esc(opp.name) + '. Stay close, staff will call you over.</div></div>';
+    } else if (spot.state === 'queued') {
+      banner = '<div class="status-banner wait"><span class="eyebrow">In line</span><div class="big">' + (spot.ahead === 0 ? 'Next squad in line' : spot.ahead + ' squad' + (spot.ahead === 1 ? '' : 's') + ' ahead of you') + '</div><div class="muted">Playing as ' + esc(spot.squad.name) + '. Your match starts when a ' + esc(L().toLowerCase()) + ' frees up, roughly ' + spot.matchesAhead + ' match' + (spot.matchesAhead === 1 ? '' : 'es') + ' from now.</div></div>';
+    } else if (spot.state === 'bench') {
+      banner = '<div class="status-banner wait"><span class="eyebrow">On the bench</span><div class="big">Sitting this one out</div><div class="muted">' + esc(spot.squad.name) + ' has more than ' + PLAN.size + ' players here. Players with fewer games go first; you\'re in the next rotation.</div></div>';
+    } else if (spot.state === 'needFill') {
+      banner = '<div class="status-banner wait"><span class="eyebrow">Waiting for players</span><div class="big">' + esc(spot.team.name) + ' needs ' + spot.team.need + ' more</div><div class="muted">Free agents will be added to your team as they check in. To play sooner, switch to free agent below.</div></div>';
+    } else if (spot.state === 'needFree') {
+      banner = '<div class="status-banner wait"><span class="eyebrow">Waiting for players</span><div class="big">' + spot.need + ' more free agent' + (spot.need === 1 ? '' : 's') + ' needed</div><div class="muted">You\'ll be grouped as soon as there are enough players, or added to a team that\'s short.</div></div>';
+    } else {
+      banner = '<div class="status-banner wait"><div class="big">Checked in</div></div>';
+    }
+    var team = p.team_id ? teamName(p.team_id) : '';
+    var teamOptions = S.teams.map(function (t) { return '<option value="' + t.id + '"' + (t.id === p.team_id ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('');
+    var myMatches = S.matches.filter(function (m) { return m.status === 'done' && (m.a_players.indexOf(p.id) >= 0 || m.b_players.indexOf(p.id) >= 0); });
+    var hist = myMatches.slice(0, 8).map(function (m) {
+      var mine = m.a_players.indexOf(p.id) >= 0 ? 'a' : 'b', won = m.winner === mine;
+      var my = mine === 'a' ? m.score_a : m.score_b, th = mine === 'a' ? m.score_b : m.score_a;
+      return '<li class="row between"><span><span class="pill ' + (won ? 'go' : 'stop') + '">' + (won ? 'W' : 'L') + '</span> vs ' + esc(mine === 'a' ? m.b_name : m.a_name) + '</span><span class="num">' + my + '–' + th + '</span></li>';
+    }).join('');
+
+    return '<section class="mecard">' +
+      '<div class="row between"><div><div class="eyebrow">Signed in on this phone</div><h2>' + esc(p.name) + '</h2><div class="muted small">' + (team ? 'Team: ' + esc(team) : 'Free agent') + (p.weapons ? ' · Weapons: ' + esc(p.weapons) : '') + '</div></div>' +
+      '<span class="pill ' + (p.checked_in ? 'go' : '') + '">' + (p.checked_in ? 'Checked in' : 'Checked out') + '</span></div>' +
+      banner +
+      (p.checked_in
+        ? '<button class="btn big" data-action="me-status" data-v="0">Check out (take a break)</button>'
+        : '<button class="btn big primary" data-action="me-status" data-v="1">Check back in</button>') +
+      '<div class="bigstat"><div><b class="num">' + p.games + '</b><span>Games</span></div><div><b class="num">' + p.wins + '</b><span>Wins</span></div><div><b class="num">' + p.losses + '</b><span>Losses</span></div></div>' +
+      '<div class="panel"><h3>Team</h3><p class="small muted" style="margin:0">Join a team to play with friends, or go free agent to get matched faster.</p>' +
+      '<label class="f">Play with<select id="me-team"><option value="">Free agent (match me with anyone)</option>' + teamOptions + '<option value="__new">+ Start a new team…</option></select></label>' +
+      '<label class="f" id="me-newteam-wrap" hidden>New team name<input type="text" id="me-newteam" maxlength="40" autocomplete="off"></label>' +
+      '<button class="btn" data-action="me-team">Save team</button></div>' +
+      '<div class="panel"><h3>Weapons</h3>' +
+      '<label class="f">Your weapons<input type="text" id="me-weapons" maxlength="80" autocomplete="off" value="' + esc(p.weapons || '') + '"></label>' +
+      '<button class="btn" data-action="me-weapons">Save weapons</button></div>' +
+      (hist ? '<div class="panel"><h3>Your matches</h3><ul class="list-plain">' + hist + '</ul></div>' : '') +
+      '<p class="small muted">Not ' + esc(p.name) + '? <button class="btn sm" data-action="me-forget">Unlink this phone</button></p>' +
+      '</section>';
+  }
+
+  function checkInForm() {
+    var teamOptions = S.teams.map(function (t) {
+      var n = S.players.filter(function (p) { return p.team_id === t.id; }).length;
+      return '<option value="' + t.id + '">' + esc(t.name) + ' (' + n + ')</option>';
+    }).join('');
+    return '<section class="panel" style="max-width:520px;width:100%;justify-self:center">' +
+      '<div><div class="eyebrow">' + esc(S.settings.event_name) + '</div><h2>Check in to play</h2></div>' +
+      '<p class="muted small" style="margin:0">Matches are ' + PLAN.size + ' vs ' + PLAN.size + '. Players with the fewest games get matched first. You can check out for a break any time.</p>' +
+      '<label class="f">Your name<input type="text" id="ci-name" maxlength="40" autocomplete="name"></label>' +
+      '<label class="f">Weapons<input type="text" id="ci-weapons" maxlength="80" autocomplete="off"></label>' +
+      '<div class="seg" role="group" aria-label="How are you playing?"><button type="button" data-action="join-mode" data-v="free" aria-pressed="' + (ui.joinMode === 'free') + '">Free agent</button><button type="button" data-action="join-mode" data-v="team" aria-pressed="' + (ui.joinMode === 'team') + '">With a team</button></div>' +
+      (ui.joinMode === 'team'
+        ? '<label class="f">Your team<select id="ci-team"><option value="">Pick your team…</option>' + teamOptions + '<option value="__new">+ Start a new team…</option></select></label>' +
+          '<label class="f" id="ci-newteam-wrap">New team name <span class="muted" style="font-weight:400">(only if starting one)</span><input type="text" id="ci-newteam" maxlength="40" autocomplete="off"></label>'
+        : '<p class="small muted" style="margin:0">We\'ll put you on a team that\'s short a player, or group you with other free agents.</p>') +
+      '<button class="btn big primary" data-action="check-in">Check in</button>' +
+      '</section>';
+  }
+
+  function setupNotice() {
+    return '<div class="panel"><h2>Almost ready</h2><p>Add your Supabase project URL and anon key to <b>config.js</b>, then reload this page. The setup guide (SETUP.md) walks through it.</p></div>';
+  }
+
+  // ----- Stations board -----
+  function viewBoard() {
+    var n = S.settings.stations, html = '';
+    var activeBy = {}; S.matches.forEach(function (m) { if (m.status === 'active') activeBy[m.station] = m; });
+    var propBy = {}; PLAN.proposals.forEach(function (p) { propBy[p.station] = p; });
+    for (var s = 1; s <= n; s++) {
+      var m = activeBy[s], pr = propBy[s];
+      html += '<div class="st"><div class="st-head"><span class="st-num">' + esc(L()) + ' ' + s + '</span>' +
+        (m ? '<span class="pill play">Live · <span class="elapsed" data-since="' + esc(m.created_at) + '">' + ago(m.created_at) + '</span></span>' : pr ? '<span class="pill warn">Up next</span>' : '<span class="pill">Open</span>') + '</div>' +
+        '<div class="st-body">' + (m ? sideHtml(m, 'a') + '<div class="vs">VS</div>' + sideHtml(m, 'b')
+          : pr ? squadHtml(pr.a, 'a') + '<div class="vs">VS</div>' + squadHtml(pr.b, 'b')
+          : '<div class="empty-st">Waiting for enough players.</div>') + '</div></div>';
+    }
+    var checked = S.players.filter(function (p) { return p.checked_in; }).length;
+    return '<section class="stack"><div class="row between"><h2>' + esc(L()) + 's</h2><span class="muted small">' + checked + ' checked in · ' + PLAN.available.length + ' waiting · ' + PLAN.busy.size + ' playing</span></div><div class="grid-st">' + html + '</div></section>' +
+      queueHtml(false);
+  }
+
+  function queueHtml(staff) {
+    var items = PLAN.queued.map(function (sq, i) {
+      return '<li><span class="pos num">' + (i + 1) + '</span><span style="min-width:0"><b>' + esc(sq.name) + '</b> <span class="muted small">' +
+        sq.players.map(nameW).join(', ') + '</span></span><span class="pill">' + sq.avgGames.toFixed(1) + ' avg</span></li>';
+    }).join('');
+    var waiting = PLAN.unfilled.map(function (u) { return '<li class="row between"><span><b>' + esc(u.name) + '</b> <span class="muted small">' + u.members.map(nameW).join(', ') + '</span></span><span class="pill warn">needs ' + u.need + '</span></li>'; }).join('');
+    var lf = PLAN.leftoverFree.length ? '<li class="row between"><span><b>Free agents</b> <span class="muted small">' + PLAN.leftoverFree.map(nameW).join(', ') + '</span></span><span class="pill warn">need ' + (PLAN.size - PLAN.leftoverFree.length) + ' more</span></li>' : '';
+    return '<section class="grid2"><div class="panel"><h3>In line</h3>' + (items ? '<ol class="list-plain queue">' + items + '</ol>' : '<p class="muted small" style="margin:0">Nobody else in line right now.</p>') + '</div>' +
+      '<div class="panel"><h3>Waiting to fill</h3>' + (waiting || lf ? '<ul class="list-plain">' + waiting + lf + '</ul>' : '<p class="muted small" style="margin:0">Every checked-in player has a squad.</p>') +
+      (staff ? '' : '<p class="small muted" style="margin:0">Fewest games plays first. Ties go to whoever has waited longest.</p>') + '</div></section>';
+  }
+
+  // ----- Standings -----
+  function viewStandings() {
+    var ps = S.players.slice().sort(function (a, b) { return (b.wins - a.wins) || ((b.wins / (b.games || 1)) - (a.wins / (a.games || 1))) || ((b.points_for - b.points_against) - (a.points_for - a.points_against)) || a.name.localeCompare(b.name); });
+    var prow = ps.map(function (p, i) {
+      return '<tr' + (me && me.id === p.id ? ' class="me"' : '') + '><td class="n">' + (i + 1) + '</td><td>' + esc(p.name) + '</td><td class="muted">' + esc(p.weapons || '–') + '</td><td class="muted">' + esc(teamName(p.team_id) || 'Free agent') + '</td><td class="n">' + p.games + '</td><td class="n">' + p.wins + '</td><td class="n">' + p.losses + '</td><td class="n">' + signed(p.points_for - p.points_against) + '</td></tr>';
+    }).join('');
+    var tstat = {};
+    S.matches.forEach(function (m) {
+      if (m.status !== 'done') return;
+      [['a', m.a_team_id, m.score_a, m.score_b], ['b', m.b_team_id, m.score_b, m.score_a]].forEach(function (x) {
+        if (!x[1]) return; var t = tstat[x[1]] || (tstat[x[1]] = { w: 0, l: 0, diff: 0 });
+        if (m.winner === x[0]) t.w++; else t.l++; t.diff += (x[2] - x[3]);
+      });
+    });
+    var trow = S.teams.filter(function (t) { return tstat[t.id]; }).sort(function (a, b) { return (tstat[b.id].w - tstat[a.id].w) || (tstat[a.id].l - tstat[b.id].l) || (tstat[b.id].diff - tstat[a.id].diff); })
+      .map(function (t, i) { var s = tstat[t.id]; return '<tr><td class="n">' + (i + 1) + '</td><td>' + esc(t.name) + '</td><td class="n">' + s.w + '</td><td class="n">' + s.l + '</td><td class="n">' + signed(s.diff) + '</td></tr>'; }).join('');
+    return '<section class="panel"><h2>Players</h2><div class="tablewrap"><table><thead><tr><th class="n">#</th><th>Player</th><th>Weapons</th><th>Team</th><th class="n">GP</th><th class="n">W</th><th class="n">L</th><th class="n">+/-</th></tr></thead><tbody>' + (prow || '<tr><td colspan="8" class="muted">No players yet.</td></tr>') + '</tbody></table></div></section>' +
+      '<section class="panel"><h2>Teams</h2><p class="small muted" style="margin:0">Counts matches a registered team played, including with fill-ins.</p><div class="tablewrap"><table><thead><tr><th class="n">#</th><th>Team</th><th class="n">W</th><th class="n">L</th><th class="n">+/-</th></tr></thead><tbody>' + (trow || '<tr><td colspan="5" class="muted">No team results yet.</td></tr>') + '</tbody></table></div></section>';
+  }
+  function signed(n) { return n > 0 ? '+' + n : String(n); }
+
+  // ----- Staff -----
+  function viewStaff() {
+    if (!sb) return setupNotice();
+    if (!staffPin) {
+      return '<section class="panel" style="max-width:420px;width:100%;justify-self:center"><h2>Staff sign-in</h2><p class="muted small" style="margin:0">Enter the staff PIN to run matches, add walk-ups and record scores.</p>' +
+        '<label class="f">Staff PIN<input type="password" id="pin" inputmode="numeric" autocomplete="off"></label><button class="btn big primary" data-action="staff-login">Unlock</button></section>';
+    }
+    var tabs = [['courts', L() + 's'], ['players', 'Players'], ['build', 'Custom match'], ['teams', 'Teams'], ['history', 'Results'], ['settings', 'Settings']];
+    var nav = '<div class="row between"><div class="subnav">' + tabs.map(function (t) { return '<button data-action="staff-tab" data-v="' + t[0] + '" aria-pressed="' + (staffTab === t[0]) + '">' + esc(t[1]) + '</button>'; }).join('') + '</div><button class="btn sm" data-action="staff-logout">Lock staff</button></div>';
+    var body = staffTab === 'players' ? staffPlayers() : staffTab === 'build' ? staffBuilder() : staffTab === 'teams' ? staffTeams() : staffTab === 'history' ? staffHistory() : staffTab === 'settings' ? staffSettings() : staffCourts();
+    return nav + body;
+  }
+
+  function staffCourts() {
+    var n = S.settings.stations, html = '';
+    var activeBy = {}; S.matches.forEach(function (m) { if (m.status === 'active') activeBy[m.station] = m; });
+    var propBy = {}; PLAN.proposals.forEach(function (p) { propBy[p.station] = p; });
+    for (var s = 1; s <= n; s++) {
+      var m = activeBy[s], pr = propBy[s], body;
+      if (m) {
+        var tie = ui.tie[m.id];
+        body = sideHtml(m, 'a', { right: '<input type="number" inputmode="numeric" min="0" class="score-in num" id="sa-' + m.id + '" aria-label="Score for ' + esc(m.a_name) + '">' }) +
+          '<div class="vs">VS</div>' +
+          sideHtml(m, 'b', { right: '<input type="number" inputmode="numeric" min="0" class="score-in num" id="sb-' + m.id + '" aria-label="Score for ' + esc(m.b_name) + '">' }) +
+          (tie ? '<div class="row"><span class="small muted">Tied score. Who won?</span><button class="btn sm" data-action="tie-pick" data-id="' + m.id + '" data-v="a">' + esc(m.a_name) + '</button><button class="btn sm" data-action="tie-pick" data-id="' + m.id + '" data-v="b">' + esc(m.b_name) + '</button></div>' : '') +
+          '<div class="row between"><button class="btn danger sm" data-action="cancel-match" data-id="' + m.id + '">Cancel match</button><button class="btn go" data-action="record" data-id="' + m.id + '">Save result</button></div>';
+      } else if (pr) {
+        body = '<div class="proposal"><span class="eyebrow">Suggested match</span>' + squadHtml(pr.a, 'a') + '<div class="vs">VS</div>' + squadHtml(pr.b, 'b') +
+          '<button class="btn primary" data-action="start-proposal" data-station="' + s + '">Start on ' + esc(L()) + ' ' + s + '</button></div>';
+      } else {
+        body = '<div class="empty-st">Not enough players waiting. Use Custom match to start one by hand.</div>';
+      }
+      html += '<div class="st"><div class="st-head"><span class="st-num">' + esc(L()) + ' ' + s + '</span>' +
+        (m ? '<span class="pill play">Live · <span class="elapsed" data-since="' + esc(m.created_at) + '">' + ago(m.created_at) + '</span></span>' : pr ? '<span class="pill warn">Ready</span>' : '<span class="pill">Open</span>') +
+        '</div><div class="st-body">' + body + '</div></div>';
+    }
+    return '<section class="stack"><div class="row between"><h2>' + esc(L()) + 's</h2>' +
+      (PLAN.proposals.length > 1 ? '<button class="btn primary" data-action="start-all">Start all ' + PLAN.proposals.length + ' suggested matches</button>' : '') +
+      '</div><div class="grid-st">' + html + '</div></section>' + queueHtml(true);
+  }
+
+  function teamSelect(id, current, live) {
+    return '<select id="' + id + '"' + (live ? ' data-live' : '') + '><option value="">Free agent</option>' +
+      S.teams.map(function (t) { return '<option value="' + t.id + '"' + (t.id === current ? ' selected' : '') + '>' + esc(t.name) + '</option>'; }).join('') +
+      '<option value="__new">+ New team…</option></select>';
+  }
+
+  function staffPlayers() {
+    var q = ui.filter.trim().toLowerCase();
+    var list = S.players.filter(function (p) { return !q || p.name.toLowerCase().indexOf(q) >= 0 || (p.weapons || '').toLowerCase().indexOf(q) >= 0 || teamName(p.team_id).toLowerCase().indexOf(q) >= 0; })
+      .sort(function (a, b) { return (b.checked_in - a.checked_in) || a.name.localeCompare(b.name); });
+    var rows = list.map(function (p) {
+      var busy = PLAN.busy.get(p.id);
+      var status = busy ? '<span class="pill play">' + esc(L()) + ' ' + busy.station + '</span>' : p.checked_in ? '<span class="pill go">In</span>' : '<span class="pill">Out</span>';
+      return '<tr><td><b>' + esc(p.name) + '</b>' + (p.weapons ? '<div class="small wpn">' + esc(p.weapons) + '</div>' : '') + '</td><td style="min-width:150px">' + teamSelect('pt-' + p.id, p.team_id, true).replace('<select ', '<select data-action-change="player-team" data-id="' + p.id + '" ') + '</td>' +
+        '<td>' + status + '</td><td class="n">' + p.games + '</td><td class="n">' + p.wins + '–' + p.losses + '</td><td><div class="row" style="flex-wrap:nowrap">' +
+        (p.checked_in ? '<button class="btn sm" data-action="p-out" data-id="' + p.id + '">Check out</button>' : '<button class="btn sm go" data-action="p-in" data-id="' + p.id + '">Check in</button>') +
+        '<button class="btn sm" data-action="p-link" data-id="' + p.id + '">Phone link</button>' +
+        '<button class="btn sm" data-action="p-rename" data-id="' + p.id + '">Edit</button>' +
+        '<button class="btn sm danger" data-action="p-delete" data-id="' + p.id + '">Remove</button></div></td></tr>';
+    }).join('');
+    var inCount = S.players.filter(function (p) { return p.checked_in; }).length;
+    return '<section class="panel"><h2>Add a walk-up player</h2><div class="grid2" style="align-items:end">' +
+      '<label class="f">Name<input type="text" id="add-name" maxlength="40" autocomplete="off"></label>' +
+      '<label class="f">Team' + teamSelect('add-team', '', false) + '</label>' +
+      '<label class="f">Weapons<input type="text" id="add-weapons" maxlength="80" autocomplete="off"></label></div>' +
+      '<label class="f" id="add-newteam-wrap" hidden>New team name<input type="text" id="add-newteam" maxlength="40" autocomplete="off"></label>' +
+      '<div class="row"><button class="btn primary" data-action="add-player">Add and check in</button><span class="small muted">They can manage themselves later from a phone link.</span></div></section>' +
+      '<section class="panel"><div class="row between"><h2>Players</h2><span class="muted small">' + inCount + ' of ' + S.players.length + ' checked in</span></div>' +
+      '<input type="search" id="pfilter" placeholder="Search name, team or weapon" value="' + esc(ui.filter) + '" data-live>' +
+      '<div class="tablewrap"><table><thead><tr><th>Name / weapons</th><th>Team</th><th>Status</th><th class="n">GP</th><th class="n">W–L</th><th></th></tr></thead><tbody>' +
+      (rows || '<tr><td colspan="6" class="muted">No players match.</td></tr>') + '</tbody></table></div></section>';
+  }
+
+  function staffBuilder() {
+    var B = ui.builder;
+    // Drop selections that are no longer available.
+    var avail = PLAN.available;
+    var availIds = new Set(avail.map(function (p) { return p.id; }));
+    ['A', 'B'].forEach(function (k) { B[k].forEach(function (id) { if (!availIds.has(id)) B[k].delete(id); }); });
+    var rows = avail.map(function (p) {
+      return '<div class="bl"><span>' + esc(p.name) + ' <span class="muted small">' + (p.weapons ? esc(p.weapons) + ' · ' : '') + esc(teamName(p.team_id) || 'FA') + ' · ' + p.games + ' GP</span></span>' +
+        '<div class="ab"><button data-action="b-pick" data-id="' + p.id + '" data-v="A" class="' + (B.A.has(p.id) ? 'on-a' : '') + '" aria-label="Put ' + esc(p.name) + ' on side A">A</button>' +
+        '<button data-action="b-pick" data-id="' + p.id + '" data-v="B" class="' + (B.B.has(p.id) ? 'on-b' : '') + '" aria-label="Put ' + esc(p.name) + ' on side B">B</button></div></div>';
+    }).join('');
+    var open = PLAN.openStations.map(function (s) { return '<option value="' + s + '">' + esc(L()) + ' ' + s + '</option>'; }).join('');
+    function names(set) { return Array.from(set).map(function (id) { var p = playerById(id); return p ? esc(p.name) : ''; }).join(', ') || '<span class="muted">nobody yet</span>'; }
+    return '<section class="panel"><h2>Custom match</h2><p class="small muted" style="margin:0">Pick any available players for each side. Useful for challenge matches or when someone asks to play with specific people.</p>' +
+      (open ? '' : '<div class="notice">Every ' + esc(L().toLowerCase()) + ' is in use. Finish a match first.</div>') +
+      '<div class="grid2"><label class="f">' + esc(L()) + '<select id="b-station">' + open + '</select></label><div></div>' +
+      '<label class="f">Side A name<input type="text" id="b-aname" maxlength="40" placeholder="Side A"></label>' +
+      '<label class="f">Side B name<input type="text" id="b-bname" maxlength="40" placeholder="Side B"></label></div>' +
+      '<div class="side a"><div class="tn">A (' + B.A.size + ')</div><div class="pl">' + names(B.A) + '</div></div>' +
+      '<div class="side b"><div class="tn">B (' + B.B.size + ')</div><div class="pl">' + names(B.B) + '</div></div>' +
+      '<div class="builder-list">' + (rows || '<p class="muted">No available players.</p>') + '</div>' +
+      '<div class="row"><button class="btn primary" data-action="b-start"' + (open ? '' : ' disabled') + '>Start match</button><button class="btn" data-action="b-clear">Clear</button></div></section>';
+  }
+
+  function staffTeams() {
+    var rows = S.teams.map(function (t) {
+      var roster = S.players.filter(function (p) { return p.team_id === t.id; });
+      var here = roster.filter(function (p) { return p.checked_in; }).length;
+      return '<tr><td><b>' + esc(t.name) + '</b><div class="small muted">' + roster.map(function (p) { return esc(p.name); }).join(', ') + '</div></td><td class="n">' + here + '/' + roster.length + '</td>' +
+        '<td><div class="row" style="flex-wrap:nowrap"><button class="btn sm" data-action="t-rename" data-id="' + t.id + '">Rename</button><button class="btn sm danger" data-action="t-delete" data-id="' + t.id + '">Delete</button></div></td></tr>';
+    }).join('');
+    return '<section class="panel"><h2>Teams</h2><div class="row"><input type="text" id="t-new" maxlength="40" placeholder="New team name" style="flex:1"><button class="btn primary" data-action="t-add">Create team</button></div>' +
+      '<p class="small muted" style="margin:0">Deleting a team keeps its players and makes them free agents.</p>' +
+      '<div class="tablewrap"><table><thead><tr><th>Team</th><th class="n">Here</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="3" class="muted">No teams yet.</td></tr>') + '</tbody></table></div></section>';
+  }
+
+  function staffHistory() {
+    var done = S.matches.filter(function (m) { return m.status === 'done'; }).sort(function (a, b) { return Date.parse(b.finished_at) - Date.parse(a.finished_at); });
+    var rows = done.map(function (m) {
+      var t = new Date(m.finished_at);
+      return '<tr><td class="num small muted">' + t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '</td><td>' + esc(L()) + ' ' + m.station + '</td>' +
+        '<td><b' + (m.winner === 'a' ? '' : ' class="muted"') + '>' + esc(m.a_name) + '</b> vs <b' + (m.winner === 'b' ? '' : ' class="muted"') + '>' + esc(m.b_name) + '</b></td>' +
+        '<td class="n">' + m.score_a + '–' + m.score_b + '</td><td><button class="btn sm danger" data-action="void" data-id="' + m.id + '">Undo result</button></td></tr>';
+    }).join('');
+    return '<section class="panel"><div class="row between"><h2>Results</h2><span class="muted small">' + done.length + ' matches played</span></div>' +
+      '<p class="small muted" style="margin:0">Undo removes the match and reverses everyone\'s games and record. Then start a new match to re-enter it.</p>' +
+      '<div class="tablewrap"><table><thead><tr><th>Time</th><th>Where</th><th>Match (winner in bold)</th><th class="n">Score</th><th></th></tr></thead><tbody>' +
+      (rows || '<tr><td colspan="5" class="muted">No results yet.</td></tr>') + '</tbody></table></div></section>';
+  }
+
+  function staffSettings() {
+    var st = S.settings, url = location.origin + location.pathname + '#me';
+    return '<section class="grid2"><div class="panel"><h2>Event</h2>' +
+      '<label class="f">Event name<input type="text" id="s-name" maxlength="60" value="' + esc(st.event_name) + '"></label>' +
+      '<div class="grid2" style="gap:10px"><label class="f">Number of ' + esc(L().toLowerCase()) + 's<input type="number" id="s-stations" min="1" max="30" value="' + st.stations + '"></label>' +
+      '<label class="f">Call them<select id="s-label">' + ['Station', 'Court', 'Table', 'Field', 'Lane', 'Arena', 'Ring', 'List'].map(function (x) { return '<option' + (x === st.station_label ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="f">Players per side<input type="number" id="s-size" min="1" max="12" value="' + st.team_size + '"></label>' +
+      '<button class="btn primary" data-action="save-settings">Save settings</button></div>' +
+      '<div class="panel"><h2>Check-in QR code</h2><p class="small muted" style="margin:0">Print this or put it on a screen. Players scan it to check in from their phones.</p>' +
+      '<div class="qr">' + qrSvg(url) + '</div><div class="linkbox">' + esc(url) + '</div><button class="btn" data-action="copy" data-v="' + esc(url) + '">Copy link</button></div>' +
+      '<div class="panel"><h2>Staff PIN</h2><label class="f">New PIN<input type="password" id="s-newpin" autocomplete="new-password"></label><button class="btn" data-action="change-pin">Change PIN</button><p class="small muted" style="margin:0">Other staff devices will need the new PIN.</p></div>' +
+      '<div class="panel"><h2>Reset</h2><p class="small muted" style="margin:0">Type RESET to confirm.</p><input type="text" id="s-reset" autocomplete="off" placeholder="RESET">' +
+      '<div class="row"><button class="btn danger" data-action="reset" data-v="results">Clear results, keep players</button><button class="btn danger" data-action="reset" data-v="everything">Start a new event</button></div></div></section>';
+  }
+
+  // ---------- actions ----------
+  function val(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+  function teamArgs(selId, newId) {
+    var v = val(selId);
+    if (v === '__new') return { p_team_id: null, p_team_name: val(newId).trim() || null, isNew: true };
+    return { p_team_id: v || null, p_team_name: null };
+  }
+  var armed = {};
+  function confirmTap(btn, key, label) {
+    if (armed[key] && Date.now() - armed[key] < 4000) { delete armed[key]; return true; }
+    armed[key] = Date.now(); btn.classList.add('armed'); var old = btn.textContent; btn.textContent = label || 'Tap again to confirm';
+    setTimeout(function () { if (btn.isConnected) { btn.classList.remove('armed'); btn.textContent = old; } }, 4000);
+    return false;
+  }
+
+  var handlers = {
+    'join-mode': function (b) { ui.joinMode = b.dataset.v; render(); },
+    'check-in': async function () {
+      var name = val('ci-name').trim();
+      if (!name) return toast('Enter your name to check in.', true);
+      var t = ui.joinMode === 'team' ? teamArgs('ci-team', 'ci-newteam') : { p_team_id: null, p_team_name: null };
+      if (ui.joinMode === 'team' && !t.p_team_id && !t.p_team_name) {
+        t = { p_team_id: null, p_team_name: val('ci-newteam').trim() || null };
+        if (!t.p_team_name) return toast('Pick your team, or type a new team name.', true);
+      }
+      try {
+        var d = await rpc('player_check_in', { p_name: name, p_team_id: t.p_team_id, p_team_name: t.p_team_name, p_weapons: val('ci-weapons').trim() });
+        me = { id: d.player_id, token: d.token }; store.set('local', 'tm_me', JSON.stringify(me));
+        toast('You\'re checked in, ' + name + '.'); await refresh();
+      } catch (e) { toast(e.message, true); }
+    },
+    'me-status': function (b) { act('player_set_status', { p_player: me.id, p_token: me.token, p_checked_in: b.dataset.v === '1' }, b.dataset.v === '1' ? 'Welcome back. You\'re in line.' : 'Checked out. Enjoy the break.'); },
+    'me-team': function () {
+      var t = teamArgs('me-team', 'me-newteam');
+      if (t.isNew && !t.p_team_name) return toast('Type a name for the new team.', true);
+      act('player_set_team', { p_player: me.id, p_token: me.token, p_team_id: t.p_team_id, p_team_name: t.p_team_name }, 'Team saved.');
+    },
+    'me-weapons': function () { act('player_set_weapons', { p_player: me.id, p_token: me.token, p_weapons: val('me-weapons').trim() }, 'Weapons saved.'); },
+    'me-forget': function (b) { if (!confirmTap(b, 'forget', 'Tap again to unlink')) return; me = null; store.set('local', 'tm_me', null); render(); },
+    'staff-login': async function () {
+      var pin = val('pin'); if (!pin) return;
+      try { await rpc('staff_verify', { p_pin: pin }); staffPin = pin; store.set('session', 'tm_pin', pin); render(); }
+      catch (e) { toast(e.message, true); }
+    },
+    'staff-logout': function () { staffPin = null; store.set('session', 'tm_pin', null); render(); },
+    'staff-tab': function (b) { staffTab = b.dataset.v; render(); },
+    'tie-pick': function (b) { saveResult(b.dataset.id, b.dataset.v); },
+    'record': function (b) { saveResult(b.dataset.id, null); },
+    'cancel-match': function (b) { if (!confirmTap(b, 'c' + b.dataset.id)) return; act('staff_cancel_match', { p_pin: staffPin, p_match: b.dataset.id }, 'Match cancelled. Players are back in line.'); },
+    'start-proposal': function (b) { var pr = PLAN.proposals.filter(function (p) { return p.station === +b.dataset.station; })[0]; if (pr) startProposal(pr, true); },
+    'start-all': async function (b) {
+      b.disabled = true; var list = PLAN.proposals.slice(), n = 0;
+      for (var i = 0; i < list.length; i++) { if (await startProposal(list[i], false)) n++; }
+      toast(n + ' match' + (n === 1 ? '' : 'es') + ' started.'); await refresh();
+    },
+    'p-in': function (b) { act('staff_set_checked_in', { p_pin: staffPin, p_player: b.dataset.id, p_checked_in: true }); },
+    'p-out': function (b) { act('staff_set_checked_in', { p_pin: staffPin, p_player: b.dataset.id, p_checked_in: false }); },
+    'p-delete': function (b) { if (!confirmTap(b, 'd' + b.dataset.id)) return; act('staff_delete_player', { p_pin: staffPin, p_player: b.dataset.id }, 'Player removed.'); },
+    'p-rename': function (b) {
+      var p = playerById(b.dataset.id); if (!p) return;
+      modal('<h3>Edit player</h3><label class="f">Name<input type="text" id="m-rename" maxlength="40" value="' + esc(p.name) + '"></label><label class="f">Weapons<input type="text" id="m-weapons" maxlength="80" value="' + esc(p.weapons || '') + '"></label><div class="row"><button class="btn primary" data-action="p-rename-save" data-id="' + p.id + '">Save</button><button class="btn" data-action="close-modal">Cancel</button></div>');
+    },
+    'p-rename-save': function (b) {
+      var p = playerById(b.dataset.id); var name = val('m-rename'), wpn = val('m-weapons').trim(); closeModal(); if (!p) return;
+      act('staff_update_player', { p_pin: staffPin, p_player: p.id, p_name: name, p_team_id: p.team_id, p_team_name: null, p_checked_in: p.checked_in, p_weapons: wpn }, 'Player updated.');
+    },
+    'p-link': async function (b) {
+      var p = playerById(b.dataset.id);
+      try {
+        var d = await rpc('staff_phone_link', { p_pin: staffPin, p_player: b.dataset.id });
+        var url = location.origin + location.pathname + '#link=' + b.dataset.id + '.' + d.token;
+        modal('<h3>Link ' + esc(p ? p.name : '') + '\'s phone</h3><p class="small muted" style="margin:0">Have them scan this. Any phone linked to this player before is unlinked.</p><div class="qr">' + qrSvg(url) + '</div><div class="linkbox">' + esc(url) + '</div><div class="row"><button class="btn" data-action="copy" data-v="' + esc(url) + '">Copy link</button><button class="btn primary" data-action="close-modal">Done</button></div>');
+      } catch (e) { toast(e.message, true); render(); }
+    },
+    'add-player': async function () {
+      var name = val('add-name').trim(); if (!name) return toast('Enter the player\'s name.', true);
+      var t = teamArgs('add-team', 'add-newteam');
+      if (t.isNew && !t.p_team_name) return toast('Type a name for the new team.', true);
+      var d = await act('staff_add_player', { p_pin: staffPin, p_name: name, p_team_id: t.p_team_id, p_team_name: t.p_team_name, p_weapons: val('add-weapons').trim() }, name + ' is checked in.');
+      if (d) { var w = document.getElementById('add-weapons'); if (w) w.value = ''; var el = document.getElementById('add-name'); if (el) { el.value = ''; el.focus(); } }
+    },
+    'b-pick': function (b) {
+      var B = ui.builder, id = b.dataset.id, side = b.dataset.v, other = side === 'A' ? 'B' : 'A';
+      if (B[side].has(id)) B[side].delete(id); else { B[side].add(id); B[other].delete(id); }
+      render();
+    },
+    'b-clear': function () { ui.builder = { A: new Set(), B: new Set() }; render(); },
+    'b-start': async function () {
+      var B = ui.builder; if (!B.A.size || !B.B.size) return toast('Put at least one player on each side.', true);
+      var d = await act('staff_start_match', { p_pin: staffPin, p_station: +val('b-station'), p_a_name: val('b-aname') || 'Side A', p_a_team: null, p_a_players: Array.from(B.A), p_b_name: val('b-bname') || 'Side B', p_b_team: null, p_b_players: Array.from(B.B) }, 'Match started.');
+      if (d) { ui.builder = { A: new Set(), B: new Set() }; ['b-aname', 'b-bname'].forEach(function (id) { var el = document.getElementById(id); if (el) el.value = ''; }); staffTab = 'courts'; render(); }
+    },
+    't-add': async function () { var n = val('t-new').trim(); if (!n) return; var d = await act('staff_save_team', { p_pin: staffPin, p_team: null, p_name: n }, 'Team created.'); if (d) { var el = document.getElementById('t-new'); if (el) el.value = ''; } },
+    't-rename': function (b) {
+      var t = teamById(b.dataset.id); if (!t) return;
+      modal('<h3>Rename team</h3><label class="f">Team name<input type="text" id="m-trename" maxlength="40" value="' + esc(t.name) + '"></label><div class="row"><button class="btn primary" data-action="t-rename-save" data-id="' + t.id + '">Save</button><button class="btn" data-action="close-modal">Cancel</button></div>');
+    },
+    't-rename-save': function (b) { var n = val('m-trename'); closeModal(); act('staff_save_team', { p_pin: staffPin, p_team: b.dataset.id, p_name: n }, 'Team renamed.'); },
+    't-delete': function (b) { if (!confirmTap(b, 't' + b.dataset.id)) return; act('staff_delete_team', { p_pin: staffPin, p_team: b.dataset.id }, 'Team deleted. Its players are now free agents.'); },
+    'void': function (b) { if (!confirmTap(b, 'v' + b.dataset.id)) return; act('staff_void_result', { p_pin: staffPin, p_match: b.dataset.id }, 'Result undone.'); },
+    'save-settings': function () {
+      act('staff_update_settings', { p_pin: staffPin, p_event_name: val('s-name'), p_stations: +val('s-stations') || 1, p_station_label: val('s-label'), p_team_size: +val('s-size') || 4 }, 'Settings saved.');
+    },
+    'change-pin': async function () {
+      var np = val('s-newpin'); var d = await act('staff_change_pin', { p_pin: staffPin, p_new_pin: np }, 'PIN changed.');
+      if (d) { staffPin = np; store.set('session', 'tm_pin', np); var el = document.getElementById('s-newpin'); if (el) el.value = ''; }
+    },
+    'reset': function (b) {
+      if (val('s-reset').trim().toUpperCase() !== 'RESET') return toast('Type RESET in the box first.', true);
+      act('staff_reset', { p_pin: staffPin, p_mode: b.dataset.v }, b.dataset.v === 'everything' ? 'New event started.' : 'Results cleared.');
+      var el = document.getElementById('s-reset'); if (el) el.value = '';
+    },
+    'copy': function (b) {
+      var t = b.dataset.v;
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { toast('Link copied.'); }, function () { toast('Select the link above and copy it.'); });
+      else toast('Select the link above and copy it.');
+    },
+    'close-modal': function (b, ev) { if (b.classList.contains('modal-bg') && ev.target !== b) return; closeModal(); }
+  };
+
+  async function startProposal(pr, single) {
+    var d = await (single ? act : function (fn, args) { return rpc(fn, args).catch(function (e) { toast(e.message, true); return null; }); })('staff_start_match', {
+      p_pin: staffPin, p_station: pr.station,
+      p_a_name: pr.a.name, p_a_team: pr.a.team_id, p_a_players: pr.a.players.map(function (p) { return p.id; }),
+      p_b_name: pr.b.name, p_b_team: pr.b.team_id, p_b_players: pr.b.players.map(function (p) { return p.id; })
+    }, single ? 'Match started on ' + L() + ' ' + pr.station + '.' : null);
+    return d;
+  }
+
+  async function saveResult(id, forced) {
+    var m = S.matches.filter(function (x) { return x.id === id; })[0]; if (!m) return;
+    var a = val('sa-' + id), b = val('sb-' + id);
+    if (a === '' || b === '') return toast('Enter both scores.', true);
+    a = parseInt(a, 10); b = parseInt(b, 10);
+    if (isNaN(a) || isNaN(b) || a < 0 || b < 0) return toast('Scores must be 0 or more.', true);
+    var w = forced || (a > b ? 'a' : b > a ? 'b' : null);
+    if (!w) { ui.tie[id] = true; render(); return; }
+    delete ui.tie[id];
+    var d = await act('staff_record_result', { p_pin: staffPin, p_match: id, p_score_a: a, p_score_b: b, p_winner: w }, (w === 'a' ? m.a_name : m.b_name) + ' win ' + Math.max(a, b) + '–' + Math.min(a, b) + '.');
+    if (d) ['sa-' + id, 'sb-' + id].forEach(function (x) { var el = document.getElementById(x); if (el) el.remove(); });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-action]'); if (!b) return;
+    var h = handlers[b.dataset.action]; if (!h) return;
+    if (b.tagName === 'BUTTON') ev.preventDefault();
+    h(b, ev);
+  });
+  document.addEventListener('change', function (ev) {
+    var el = ev.target;
+    if (el.id === 'me-team' || el.id === 'add-team' || el.id === 'ci-team') {
+      var wrap = document.getElementById(el.id.replace('-team', '-newteam-wrap'));
+      if (wrap && el.id !== 'ci-team') wrap.hidden = el.value !== '__new';
+    }
+    if (el.dataset.actionChange === 'player-team') {
+      var p = playerById(el.dataset.id); if (!p) return;
+      if (el.value === '__new') {
+        modal('<h3>New team for ' + esc(p.name) + '</h3><label class="f">Team name<input type="text" id="m-pteam" maxlength="40"></label><div class="row"><button class="btn primary" data-action="p-newteam-save" data-id="' + p.id + '">Save</button><button class="btn" data-action="close-modal">Cancel</button></div>');
+        handlers['p-newteam-save'] = function (b) { var n = val('m-pteam'); closeModal(); act('staff_update_player', { p_pin: staffPin, p_player: p.id, p_name: p.name, p_team_id: null, p_team_name: n, p_checked_in: p.checked_in, p_weapons: p.weapons || '' }, 'Team saved.'); };
+        render(); return;
+      }
+      act('staff_update_player', { p_pin: staffPin, p_player: p.id, p_name: p.name, p_team_id: el.value || null, p_team_name: null, p_checked_in: p.checked_in, p_weapons: p.weapons || '' }, 'Team saved.');
+    }
+  });
+  document.addEventListener('input', function (ev) { if (ev.target.id === 'pfilter') { ui.filter = ev.target.value; render(); } });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') closeModal();
+    if (ev.key !== 'Enter') return;
+    var map = { 'pin': 'staff-login', 'ci-name': 'check-in', 'ci-weapons': 'check-in', 'ci-newteam': 'check-in', 'me-weapons': 'me-weapons', 'add-weapons': 'add-player', 'add-name': 'add-player', 't-new': 't-add' };
+    var a = map[ev.target.id]; if (a) { ev.preventDefault(); handlers[a](ev.target, ev); }
+  });
+
+  function route() {
+    var h = location.hash.replace('#', '');
+    if (h.indexOf('link=') === 0) {
+      var parts = h.slice(5).split('.');
+      if (parts.length === 2) { me = { id: parts[0], token: parts[1] }; store.set('local', 'tm_me', JSON.stringify(me)); toast('This phone is now linked.'); }
+      history.replaceState(null, '', location.pathname + '#me'); h = 'me';
+    }
+    view = ['me', 'board', 'standings', 'staff'].indexOf(h) >= 0 ? h : 'me';
+    window.scrollTo(0, 0); render();
+  }
+  window.addEventListener('hashchange', route);
+
+  setInterval(function () { document.querySelectorAll('.elapsed').forEach(function (el) { el.textContent = ago(el.dataset.since); }); }, 30000);
+  setInterval(refresh, 20000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) refresh(); });
+
+  if (!sb) { S.loaded = true; route(); setLive(false); return; }
+  if (sb.channel) {
+    sb.channel('tm-all')
+      .on('postgres_changes', { event: '*', schema: 'public' }, soon)
+      .subscribe(function (status) { setLive(status === 'SUBSCRIBED'); });
+  }
+  route(); refresh();
+})();
+</script>
+<script src="/nav.js"></script>
+</body>
+</html>
