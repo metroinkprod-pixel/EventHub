@@ -405,7 +405,7 @@
     }
     try {
       var res = await O.rpc("ops_ros_import", { p_rows: list, p_mode: mode });
-      importState = null; O.toast("Imported " + res.count + " blocks"); await reload();
+      importState = null; O.toast("Imported " + res.count + " blocks"); rows = []; await reload();
     } catch (err) { O.toast(err.message); }
   }
 
@@ -435,7 +435,7 @@
     else if (act === "cancel") { view.editing = null; draw(true); }
     else if (act === "delete") { view.editing = null; del(r); }
     else if (act === "pv-reset") { view.preview = null; draw(true); }
-    else if (act === "unlock") O.askPin(function () { draw(true); });
+    else if (act === "unlock") O.askPin();
     else if (act === "import-replace") O.guard(function () { doImport("replace"); });
     else if (act === "import-append") O.guard(function () { doImport("append"); });
     else if (act === "export") exportCsv();
@@ -453,6 +453,8 @@
   function render() {
     document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === view.tab)); });
     if (!O.configured) { main.innerHTML = O.notConfiguredHtml(); return; }
+    if (!O.unlocked()) { main.innerHTML = O.lockedHtml("the run of show and shifts"); return; }
+    if (!loaded) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
     ({ now: viewNow, timeline: viewTimeline, mine: viewMine, tools: viewTools }[view.tab] || viewNow)();
   }
   var draw = O.makeRenderer(render, function () { return !!view.editing; });
@@ -463,22 +465,27 @@
       draw(true); window.scrollTo(0, 0);
     };
   });
-  O.onLockChange = function () { if (view.tab === "tools") draw(true); };
-
+  var loaded = false, poller = null;
   async function reload() {
-    var d = await O.load({ ops_ros: "sort" });
-    rows = d.ops_ros;
+    var res = await O.rpc("ops_ros_list", {});
+    rows = O.merge(rows, res.rows);
+    loaded = true;
     draw();
   }
+  O.onLockChange = function () {
+    if (!O.unlocked()) { rows = []; loaded = false; view.editing = null; if (poller) poller.reset(); O.setConn(false, "Locked"); draw(true); return; }
+    if (!loaded && poller) poller.now().catch(function () {});
+    draw(true);
+  };
   (async function start() {
     O.bindLock();
     if (!O.configured) { render(); O.setConn(false, "Not set up"); return; }
-    try { await reload(); } catch (err) {
-      main.innerHTML = '<div class="notice"><b>Couldn’t load the run of show.</b> Check the Supabase details in site-config.js and that ops-setup.sql ran. (' + esc(err.message) + ")</div>";
-      return;
-    }
-    O.checkSavedPin();
-    O.subscribe("ros", ["ops_ros"], function (t, p) { rows = O.applyChange(rows, p); draw(); }, function () { reload().catch(function () {}); });
-    setInterval(function () { if (view.tab !== "tools") draw(); }, 30000);
+    poller = O.poll("ros", function () {
+      return reload().catch(function (err) {
+        if (!loaded) main.innerHTML = '<div class="notice"><b>Couldn’t load the run of show.</b> Check the Supabase details in site-config.js and that ops-setup.sql ran. (' + esc(err.message) + ")</div>";
+      });
+    });
+    if (O.unlocked()) poller.now(); else { O.setConn(false, "Locked"); render(); }
+    setInterval(function () { if (view.tab !== "tools" && loaded) draw(); }, 30000);
   })();
 })();
