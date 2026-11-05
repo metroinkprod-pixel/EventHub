@@ -164,6 +164,10 @@ tr.me td { background: var(--a-soft); }
    color-scheme: dark;
  }
  header.top { background-image: var(--t-pattern); border-bottom: 2px solid var(--t-accent); }
+ :root { --r: var(--t-radius); }
+ .btn, input[type=text], input[type=number], input[type=password], input[type=search], select, .seg, .seg button, .pill, .side,
+ .proposal, .bigstat div, .queue li, .builder-list .bl, .ab button, .qr, .linkbox, .subnav button, .notice { border-radius: var(--t-radius-sm); }
+ .modal, .toast { border-radius: var(--t-radius); }
  .brand h1 { color: var(--t-highlight); }
  </style>
 </head>
@@ -800,6 +804,7 @@ tr.me td { background: var(--a-soft); }
   sync();
   window.addEventListener('hashchange', sync);
   window.addEventListener('storage', function (e) { if (e.key === 'ops-pin') sync(); });
+  window.addEventListener('ops-lock-change', sync);
 })();
 </script>
 <script src="/nav.js"></script>
