@@ -338,7 +338,7 @@
     else if (act === "sw-lent" || act === "sw-bringing" || act === "sw-needs") O.guard(async function () {
       t.switch2 = act.slice(3); draw(true); await run("ops_team_save", { p_team: { id: t.id, switch2: t.switch2 } });
     });
-    else if (act === "unlock") O.askPin(function () { draw(true); });
+    else if (act === "unlock") O.askPin();
     else if (act === "imp-merge") O.guard(function () { doImport(importTeams(), "merge", "sheet"); });
     else if (act === "imp-replace") O.guard(function () { doImport(importTeams(), "replace", "sheet"); });
     else if (act === "sgg-fetch") fetchStartgg();
@@ -358,6 +358,8 @@
   function render() {
     document.querySelectorAll("#tabs button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === view.tab)); });
     if (!O.configured) { main.innerHTML = O.notConfiguredHtml(); return; }
+    if (!O.unlocked()) { main.innerHTML = O.lockedHtml("check-in"); return; }
+    if (!loaded) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
     ({ checkin: viewCheckin, switch: viewSwitch, setup: viewSetup }[view.tab] || viewCheckin)();
   }
   var draw = O.makeRenderer(render, function () { return !!view.editing; });
@@ -368,24 +370,26 @@
       draw(true); window.scrollTo(0, 0);
     };
   });
-  O.onLockChange = function () { if (view.tab === "setup") draw(true); };
-
+  var loaded = false, poller = null;
   async function reload() {
-    var d = await O.load({ ops_teams: "sort", ops_players: "sort" });
-    teams = d.ops_teams; players = d.ops_players;
+    var res = await O.rpc("ops_checkin_list", {});
+    teams = O.merge(teams, res.teams); players = O.merge(players, res.players);
+    loaded = true;
     draw();
   }
+  O.onLockChange = function () {
+    if (!O.unlocked()) { teams = []; players = []; loaded = false; view.editing = null; sggPreview = null; if (poller) poller.reset(); O.setConn(false, "Locked"); draw(true); return; }
+    if (!loaded && poller) poller.now().catch(function () {});
+    draw(true);
+  };
   (async function start() {
     O.bindLock();
     if (!O.configured) { render(); O.setConn(false, "Not set up"); return; }
-    try { await reload(); } catch (err) {
-      main.innerHTML = '<div class="notice"><b>Couldn’t load check-in.</b> Check the Supabase details in site-config.js and that ops-setup.sql ran. (' + esc(err.message) + ")</div>";
-      return;
-    }
-    O.checkSavedPin();
-    O.subscribe("checkin", ["ops_teams", "ops_players"], function (tbl, p) {
-      if (tbl === "ops_teams") teams = O.applyChange(teams, p); else players = O.applyChange(players, p);
-      draw();
-    }, function () { reload().catch(function () {}); });
+    poller = O.poll("checkin", function () {
+      return reload().catch(function (err) {
+        if (!loaded) main.innerHTML = '<div class="notice"><b>Couldn’t load check-in.</b> Check the Supabase details in site-config.js and that ops-setup.sql ran. (' + esc(err.message) + ")</div>";
+      });
+    });
+    if (O.unlocked()) poller.now(); else { O.setConn(false, "Locked"); render(); }
   })();
 })();
