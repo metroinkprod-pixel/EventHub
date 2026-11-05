@@ -15,7 +15,7 @@
     return esc(text).replace(/\bhttps?:\/\/[^\s<]+[^\s<.,;:!?)\]'"]/g, function (url) {
       var raw = url.replace(/&amp;/g, "&"), host = raw;
       try { host = new URL(raw).hostname.replace(/^www\./, ""); } catch (e) {}
-      return '<a href="' + url + '" target="_blank" rel="noopener">' + esc(host) + " ↗</a>";
+      return '<a href="' + url + '" target="_blank" rel="noopener">' + esc(host) + "</a>";
     });
   }
 
