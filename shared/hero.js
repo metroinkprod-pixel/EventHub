@@ -17,7 +17,7 @@
   }
   setPill(pills[0], H.eventDate);
   setPill(pills[1], H.location);
-  var keys = { twitch: "stream", discord: "discord", twitter: "twitter", bluesky: "bluesky", startgg: "startgg" };
+  var keys = { twitch: "stream", discord: "discord", twitter: "twitter", bluesky: "bluesky", bracket: "bracket" };
   Object.keys(keys).forEach(function (cls) {
     var a = document.querySelector(".link-pill." + cls);
     if (!a) return;
