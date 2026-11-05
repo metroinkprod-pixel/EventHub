@@ -794,7 +794,7 @@ tr.me td { background: var(--a-soft); }
   var tab = document.getElementById('tab-staff');
   function sync() {
     var staff = false;
-    try { staff = !!localStorage.getItem('ops-pin'); } catch (e) {}
+	try { staff = !!localStorage.getItem('ops-pin') && /^(staff|owner)$/.test(localStorage.getItem('ops-role') || ''); } catch (e) {}
     tab.style.display = (staff || location.hash === '#staff') ? '' : 'none';
   }
   sync();
