@@ -1,32 +1,30 @@
 /* Shared styles for the staff tools (Run of show, Check-in). */
 :root {
-  --bg: #eef1f5; --surface: #ffffff; --ink: #1a2233; --muted: #5a6478; --line: #d3d9e3;
-  --accent: #2a5bd7; --done: #1d7a52; --done-bg: #e3f4ea; --flag: #9a5800; --flag-bg: #fff3dc;
-  --danger: #c2333d; --danger-bg: #fde8ea; --live: #2a5bd7; --live-bg: #e8f0ff; --new: #6b3fc4;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12161f; --surface: #1b2130; --ink: #e7ebf2; --muted: #9aa4b6; --line: #2e3647;
-    --accent: #7ea2ff; --done: #4fc58e; --done-bg: #173226; --flag: #f2b04f; --flag-bg: #3a2e17;
-    --danger: #ff6b74; --danger-bg: #3a1c20; --live: #7ea2ff; --live-bg: #22304d; --new: #b79bff;
-    color-scheme: dark;
-  }
+  /* Colors come from the event theme (/theme.css). */
+  --bg: var(--t-bg); --surface: var(--t-surface); --ink: var(--t-ink); --muted: var(--t-muted); --line: var(--t-line);
+  --accent: var(--t-accent); --accent-ink: var(--t-accent-ink);
+  --done: var(--t-good); --done-bg: color-mix(in srgb, var(--t-good) 16%, var(--t-surface));
+  --flag: var(--t-warn); --flag-bg: color-mix(in srgb, var(--t-warn) 15%, var(--t-surface));
+  --danger: var(--t-danger); --danger-bg: color-mix(in srgb, var(--t-danger) 16%, var(--t-surface));
+  --live: var(--t-accent-3); --live-bg: color-mix(in srgb, var(--t-accent-3) 16%, var(--t-surface)); --new: var(--t-accent-3);
+  color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
-  font: 16px/1.5 "Atkinson Hyperlegible", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font: 17px/1.5 var(--t-body);
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 button, input, select, textarea { font: inherit; color: inherit; }
 .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
 
-.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+.top { background: var(--t-bg-deep); border-bottom: 2px solid var(--accent); background-image: var(--t-pattern); }
 .top .wrap { padding-top: 12px; padding-bottom: 10px; display: grid; gap: 10px; }
 .title-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-h1 { margin: 0; font-size: 1.35rem; line-height: 1.2; }
+h1 { margin: 0; font: 800 1.6rem/1.1 var(--t-display); letter-spacing: .02em; text-transform: uppercase; color: var(--t-highlight); }
+h1 small { font-family: var(--t-body); text-transform: none; letter-spacing: 0; }
+h2, h3 { font-family: var(--t-display); letter-spacing: .02em; }
 h1 small { display: block; font-size: .85rem; font-weight: 400; color: var(--muted); }
 .conn { font-size: .85rem; color: var(--muted); white-space: nowrap; }
 .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); margin-right: 6px; vertical-align: middle; }
@@ -34,10 +32,11 @@ h1 small { display: block; font-size: .85rem; font-weight: 400; color: var(--mut
 .tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
 .tabs button {
+  font-family: var(--t-display); letter-spacing: .04em; text-transform: uppercase;
   border: 1px solid var(--line); background: var(--bg); padding: 7px 14px; border-radius: 99px; cursor: pointer;
   font-weight: 700; font-size: .92rem; white-space: nowrap;
 }
-.tabs button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+.tabs button[aria-pressed="true"] { background: var(--t-highlight); border-color: var(--t-highlight); color: var(--t-highlight-ink); }
 .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
 main.wrap { padding-top: 16px; padding-bottom: 60px; display: grid; gap: 16px; }
@@ -47,8 +46,8 @@ main.wrap { padding-top: 16px; padding-bottom: 60px; display: grid; gap: 16px; }
   cursor: pointer; font-weight: 700; font-size: .92rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
 }
 .btn:hover { border-color: var(--accent); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-.btn.good { background: var(--done); border-color: var(--done); color: #fff; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.good { background: var(--done); border-color: var(--done); color: #0b1a12; }
 .btn.danger { border-color: var(--danger); color: var(--danger); }
 .btn.ghost { background: none; }
 .btn.sm { padding: 4px 10px; font-size: .85rem; }
