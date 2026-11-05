@@ -157,7 +157,7 @@ tr.me td { background: var(--a-soft); }
       <a href="#me">My spot</a>
       <a href="#board" id="tab-board">Stations</a>
       <a href="#standings">Standings</a>
-      <a href="#staff">Staff</a>
+      <a href="#staff" id="tab-staff">Staff</a>
     </nav>
   </div>
 </header>
@@ -766,6 +766,22 @@ tr.me td { background: var(--a-soft); }
       .subscribe(function (status) { setLive(status === 'SUBSCRIBED'); });
   }
   route(); refresh();
+})();
+</script>
+<script>
+// Hub: only show the Staff tab on devices signed in to the hub's staff tools,
+// or when someone opens /matchmaker/#staff directly. Staff actions are still
+// protected by the matchmaker's own PIN on the server.
+(function () {
+  var tab = document.getElementById('tab-staff');
+  function sync() {
+    var staff = false;
+    try { staff = !!localStorage.getItem('ops-pin'); } catch (e) {}
+    tab.style.display = (staff || location.hash === '#staff') ? '' : 'none';
+  }
+  sync();
+  window.addEventListener('hashchange', sync);
+  window.addEventListener('storage', function (e) { if (e.key === 'ops-pin') sync(); });
 })();
 </script>
 <script src="/nav.js"></script>
