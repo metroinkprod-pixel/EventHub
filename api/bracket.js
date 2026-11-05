@@ -12,7 +12,7 @@ const QUERY = `
           id
           station { id number }
           fullRoundText
-          phaseGroup { phase { name } }
+          phaseGroup { phase { name phaseOrder } }
           slots {
             entrant { id name }
             standing { stats { score { value } } }
@@ -22,19 +22,33 @@ const QUERY = `
     }
   }`;
 
-const phaseStyles = {
-  'Group Stage':          { css: 'groups' },
-  'Silver Bracket':       { css: 'silver' },
-  'Silver Final Four':    { css: 'silver' },
-  'Bronze Bracket':       { css: 'bronze' },
-  'Redemption Bracket':   { css: 'redemption' },
-  'Top 8':                { css: 'top8' },
-  'Championship Bracket': { css: 'top8' },
-  'Side Event':           { css: 'side' }
+// ---------------------------------------------------------------
+//  BRACKET STAGE COLORS
+//  Each start.gg phase gets a color band on the board. The label shows
+//  the phase name exactly as start.gg has it.
+//
+//  1. EXACT NAMES (checked first): add your phase names here if a
+//     keyword below picks the wrong color.
+//     Colors: 'groups' (blue), 'silver', 'bronze', 'redemption' (green),
+//             'top8' (gold), 'side' (grey)
+const PHASE_COLORS = {
+  // 'Top 8 Round Robin': 'top8',
+  // 'Wave B Pools': 'groups',
 };
+//  2. KEYWORDS (checked in this order, first match wins)
+const PHASE_KEYWORDS = [
+  [/silver/i, 'silver'],
+  [/bronze/i, 'bronze'],
+  [/redemption/i, 'redemption'],
+  [/top ?\d+|championship|grand final|finals?\b/i, 'top8'],
+  [/pool|group|wave|round robin|swiss/i, 'groups'],
+  [/side|exhibition|amateur|free ?play/i, 'side']
+];
+//  Anything else is grey ('side'). Check what your event gets at /api/phases.
+// ---------------------------------------------------------------
 function getPhaseStyle(name) {
-  if (phaseStyles[name]) return phaseStyles[name];
-  if (/^(Group|Pool)/.test(name)) return phaseStyles['Group Stage'];
+  if (PHASE_COLORS[name]) return { css: PHASE_COLORS[name] };
+  for (const [re, css] of PHASE_KEYWORDS) if (re.test(name || '')) return { css };
   return { css: 'side' };
 }
 
@@ -57,6 +71,7 @@ module.exports = async function (req, res) {
         round: s.fullRoundText,
         phase: phase,
         phaseStyle: getPhaseStyle(phase),
+        phaseOrder: s.phaseGroup.phase.phaseOrder || 0,
         team1: { name: r1 ? r1.teamName : t1.entrant.name, players: r1 ? r1.players : [], score: score(t1) },
         team2: { name: r2 ? r2.teamName : t2.entrant.name, players: r2 ? r2.players : [], score: score(t2) }
       };
@@ -69,3 +84,5 @@ module.exports = async function (req, res) {
     res.status(500).json({ error: 'Failed to fetch from start.gg: ' + error.message });
   }
 };
+
+module.exports.getPhaseStyle = getPhaseStyle;
