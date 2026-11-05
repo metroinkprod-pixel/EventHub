@@ -22,6 +22,8 @@ window.HUB = {
   links: {
     stream:  "https://twitch.tv/GenGame",
     discord: "https://discord.gg/X5SWeJtX7h",
-    startgg: "https://start.gg/bigdapple"
+    startgg: "https://start.gg/bigdapple",
+    twitter: "https://twitter.com/metro_ink",
+    bluesky: "https://bsky.app/profile/metroink.bsky.social"
   }
 };
