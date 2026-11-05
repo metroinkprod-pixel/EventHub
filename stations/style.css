@@ -34,7 +34,7 @@ body {
   color: #888;
   width: 36px;
   height: 36px;
-  border-radius: 4px;
+  border-radius: var(--t-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,7 +52,7 @@ body {
   color: var(--t-accent);
   font-size: 40px;
   padding: 8px 16px;
-  border-radius: 4px;
+  border-radius: var(--t-radius-sm);
 }
 
 /* BRACKET LABEL */
@@ -174,7 +174,7 @@ body {
   font-weight: bold;
   width: 64px;
   height: 72px;
-  border-radius: 4px;
+  border-radius: var(--t-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -205,7 +205,7 @@ body {
   font-size: 30px;
   font-weight: bold;
   padding: 4px 20px;
-  border-radius: 3px;
+  border-radius: var(--t-radius-sm);
 }
 
 .twitch-link {

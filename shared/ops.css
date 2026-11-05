@@ -33,7 +33,7 @@ h1 small { display: block; font-size: .85rem; font-weight: 400; color: var(--mut
 .tabs::-webkit-scrollbar { display: none; }
 .tabs button {
   font-family: var(--t-display); letter-spacing: .04em; text-transform: uppercase;
-  border: 1px solid var(--line); background: var(--bg); padding: 7px 14px; border-radius: 99px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--bg); padding: 7px 14px; border-radius: var(--t-radius-sm); cursor: pointer;
   font-weight: 700; font-size: .92rem; white-space: nowrap;
 }
 .tabs button[aria-pressed="true"] { background: var(--t-highlight); border-color: var(--t-highlight); color: var(--t-highlight-ink); }
@@ -42,7 +42,7 @@ h1 small { display: block; font-size: .85rem; font-weight: 400; color: var(--mut
 main.wrap { padding-top: 16px; padding-bottom: 60px; display: grid; gap: 16px; }
 
 .btn {
-  border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 14px; border-radius: 9px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 7px 14px; border-radius: var(--t-radius-sm);
   cursor: pointer; font-weight: 700; font-size: .92rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px;
 }
 .btn:hover { border-color: var(--accent); }
@@ -52,18 +52,18 @@ main.wrap { padding-top: 16px; padding-bottom: 60px; display: grid; gap: 16px; }
 .btn.ghost { background: none; }
 .btn.sm { padding: 4px 10px; font-size: .85rem; }
 .btn:disabled { opacity: .5; cursor: default; }
-.lock { border: 1px solid var(--flag); background: var(--flag-bg); color: var(--flag); padding: 6px 12px; border-radius: 99px; cursor: pointer; font-weight: 700; font-size: .88rem; }
+.lock { border: 1px solid var(--flag); background: var(--flag-bg); color: var(--flag); padding: 6px 12px; border-radius: var(--t-radius-sm); cursor: pointer; font-weight: 700; font-size: .88rem; }
 .lock.on { border-color: var(--done); background: none; color: var(--done); }
 
 input[type="text"], input[type="search"], input[type="time"], input[type="number"], select, textarea {
-  border: 1px solid var(--line); background: var(--bg); border-radius: 9px; padding: 8px 10px; min-width: 0;
+  border: 1px solid var(--line); background: var(--bg); border-radius: var(--t-radius-sm); padding: 8px 10px; min-width: 0;
 }
 textarea { width: 100%; min-height: 160px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .85rem; }
 label.f { display: grid; gap: 3px; font-size: .82rem; color: var(--muted); }
 label.f input, label.f select { width: 100%; color: var(--ink); font-size: 1rem; }
 .grid2 { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 16px; }
 .panel > h2, .panel > header h2 { margin: 0; font-size: 1.1rem; }
 .panel > header { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
 .panel.flush { padding: 0; overflow: hidden; }
@@ -71,15 +71,15 @@ label.f input, label.f select { width: 100%; color: var(--ink); font-size: 1rem;
 .muted { color: var(--muted); }
 .small { font-size: .88rem; }
 .empty { color: var(--muted); padding: 12px 16px; }
-.tag { display: inline-block; border: 1px solid var(--line); border-radius: 99px; padding: 0 8px; font-size: .8rem; color: var(--muted); }
+.tag { display: inline-block; border: 1px solid var(--line); border-radius: var(--t-radius-sm); padding: 0 8px; font-size: .8rem; color: var(--muted); }
 .tag.added { border-color: transparent; color: var(--new); font-weight: 700; padding: 0; }
-.pill { display: inline-block; border-radius: 99px; padding: 1px 9px; font-size: .8rem; font-weight: 700; white-space: nowrap; }
+.pill { display: inline-block; border-radius: var(--t-radius-sm); padding: 1px 9px; font-size: .8rem; font-weight: 700; white-space: nowrap; }
 .pill.done { background: var(--done-bg); color: var(--done); }
 .pill.live { background: var(--live-bg); color: var(--live); }
 .pill.late { background: var(--danger-bg); color: var(--danger); }
 .pill.flag { background: var(--flag-bg); color: var(--flag); }
 .pill.skip { background: var(--bg); color: var(--muted); }
-.notice { background: var(--flag-bg); border: 1px solid var(--flag); color: var(--ink); border-radius: 12px; padding: 12px 14px; }
+.notice { background: var(--flag-bg); border: 1px solid var(--flag); color: var(--ink); border-radius: var(--t-radius); padding: 12px 14px; }
 .tablewrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: .92rem; }
 th, td { text-align: left; padding: 7px 8px; border-top: 1px solid var(--line); vertical-align: top; }
@@ -88,12 +88,12 @@ td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
 
 .toast {
   position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 60;
-  background: var(--ink); color: var(--surface); border-radius: 12px; padding: 10px 14px; display: flex; gap: 12px; align-items: center;
+  background: var(--ink); color: var(--surface); border-radius: var(--t-radius); padding: 10px 14px; display: flex; gap: 12px; align-items: center;
   box-shadow: 0 6px 24px rgb(0 0 0 / .25); max-width: calc(100% - 32px);
 }
 .toast[hidden] { display: none; }
-.toast button { background: none; border: 1px solid var(--surface); color: var(--surface); border-radius: 8px; padding: 4px 12px; font-weight: 700; cursor: pointer; }
-dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 20px; width: min(620px, calc(100% - 24px)); max-height: calc(100% - 40px); }
+.toast button { background: none; border: 1px solid var(--surface); color: var(--surface); border-radius: var(--t-radius-sm); padding: 4px 12px; font-weight: 700; cursor: pointer; }
+dialog { border: 1px solid var(--line); border-radius: var(--t-radius); background: var(--surface); color: var(--ink); padding: 20px; width: min(620px, calc(100% - 24px)); max-height: calc(100% - 40px); }
 dialog.pin { width: min(340px, calc(100% - 32px)); }
 dialog::backdrop { background: rgb(0 0 0 / .45); }
 dialog h2 { margin: 0 0 6px; font-size: 1.15rem; }

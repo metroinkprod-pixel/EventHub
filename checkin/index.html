@@ -11,23 +11,23 @@
 <link rel="stylesheet" href="/shared/ops.css">
 <style>
 .summary { display: flex; gap: 10px; flex-wrap: wrap; }
-.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-width: 8.5rem; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 10px 14px; min-width: 8.5rem; }
 .stat b { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .stat span { font-size: .85rem; color: var(--muted); }
 .stat.all { border-color: var(--done); }
 .search { width: 100%; font-size: 1.15rem; padding: 12px 14px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { border: 1px solid var(--line); background: var(--bg); padding: 5px 12px; border-radius: 99px; cursor: pointer; font-weight: 700; font-size: .88rem; }
+.chip { border: 1px solid var(--line); background: var(--bg); padding: 5px 12px; border-radius: var(--t-radius-sm); cursor: pointer; font-weight: 700; font-size: .88rem; }
 .chip[aria-pressed="true"] { background: var(--t-highlight); color: var(--t-highlight-ink); border-color: var(--t-highlight); }
 .teams { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
-.team { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; align-content: start; }
+.team { background: var(--surface); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 14px; display: grid; gap: 10px; align-content: start; }
 .team.in { border-color: var(--done); box-shadow: inset 4px 0 0 var(--done); }
 .team.no { opacity: .7; }
 .team h3 { margin: 0; font-size: 1.15rem; line-height: 1.25; overflow-wrap: anywhere; }
 .team .head { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
 .team .sub { font-size: .88rem; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .players { display: flex; gap: 6px; flex-wrap: wrap; }
-.player { border: 1px solid var(--line); background: var(--bg); border-radius: 99px; padding: 5px 11px; cursor: pointer; font-size: .92rem; }
+.player { border: 1px solid var(--line); background: var(--bg); border-radius: var(--t-radius-sm); padding: 5px 11px; cursor: pointer; font-size: .92rem; }
 .player.here { background: var(--done-bg); border-color: var(--done); color: var(--done); font-weight: 700; }
 .player.here::before { content: "✓ "; }
 .team .acts { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -49,7 +49,6 @@
   <div class="wrap">
     <div class="title-row">
       <h1 id="title">Tournament check-in</h1>
-      <div class="bar"><button class="lock" id="lockBtn"></button><span class="conn"><span class="dot" id="dot"></span><span id="conn">Connecting…</span></span></div>
     </div>
     <nav class="tabs" id="tabs" aria-label="Views">
       <button data-tab="checkin">Check-in</button>

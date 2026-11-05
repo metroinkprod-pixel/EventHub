@@ -34,6 +34,12 @@
   --t-font:        Arial, "Helvetica Neue", Helvetica, sans-serif;
   --t-display:     var(--t-font);
   --t-body:        var(--t-font);
+  /* Corner rounding, the same everywhere:
+     --t-radius     boxes (cards, panels, rows, dialogs)
+     --t-radius-sm  controls (buttons, tabs, inputs, tags, menu links)
+     Circles (station numbers, game numbers) stay round. */
+  --t-radius:      10px;
+  --t-radius-sm:   6px;
   /* Optional background texture for page headers. "none" = plain. */
   --t-pattern:     none;
   color-scheme: dark;

@@ -84,10 +84,19 @@
   };
 
   // ---------- connection status ----------
+  // Only shows something when there's a problem reaching the database.
   Ops.setConn = function (live, text) {
-    var d = document.getElementById("dot"), c = document.getElementById("conn");
-    if (d) d.classList.toggle("live", !!live);
-    if (c) c.textContent = text || (live ? "Live" : "Reconnecting…");
+    var el = document.getElementById("ops-conn");
+    var show = !live && Ops.unlocked() && !/locked|not set up/i.test(text || "");
+    if (!show) { if (el) el.hidden = true; return; }
+    if (!el) {
+      el = document.createElement("div"); el.id = "ops-conn"; el.setAttribute("role", "status");
+      el.style.cssText = "position:fixed;left:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:55;padding:6px 12px;" +
+        "border-radius:var(--t-radius-sm,6px);background:var(--t-danger,#c33);color:#fff;font:700 13px/1.3 var(--t-font,Arial,sans-serif)";
+      document.body.appendChild(el);
+    }
+    el.textContent = text || "Offline, retrying…";
+    el.hidden = false;
   };
 
   // ---------- toast ----------
