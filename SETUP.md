@@ -53,8 +53,24 @@ The station board needs a small server function to talk to start.gg (so your tok
 **Option B, from your computer:** install Node, then in this folder run `npx vercel` and follow the prompts. Add the environment variables in the Vercel dashboard, then run `npx vercel --prod`.
 
 To test locally, copy `.env.example` to `.env`, fill it in, and run `npx vercel dev`.
+## 5. Stations Setup (Update via StartGG)
+a. Find the Event ID.
+  Go to developer.start.gg and open the API Explorer (sign in, and use your token if it asks).
+  Run this, with your own tournament and event names from the URL: Put this in the Query section.
+  Headers = { "Authorization": "Bearer yourtoken"}
+     query { event(slug: "tournament/gridlock-2026/event/4v4-tournament") { id name } }
+  
+  Returned ID is EventID
 
-## 5. Day-of checklist
+b. Set the Vercel environment variables. Go to Vercel → your project → Settings → Environment Variables and add:
+
+  STARTGG_API_KEY: your new start.gg token (replace the one shared earlier, if you haven’t).
+  EVENT_ID: the number from step 1.
+  MAIN_STATION: the station number you’re using for mainstage, which shows as M on the board. It defaults to 6 if you leave it out.
+
+c. Redeploy, you're good to go.
+
+## 6. Day-of checklist
 
 1. **The day before:** open the hub and the matchmaker once. Free Supabase projects pause after a week of no use.
 2. **Run of show:** open `/run-of-show/`, tap **Staff PIN to edit**, and check the **Now** view. Use **Preview another time** to rehearse.
