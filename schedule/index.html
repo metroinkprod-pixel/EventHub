@@ -4,19 +4,22 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gridlock 2026 — Schedule</title>
+<link rel="stylesheet" href="/theme.css">
+<script src="/site-config.js"></script>
+<script src="/theme.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    background: #0d1a2e;
-    color: #e8edf5;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--t-bg);
+    color: var(--t-ink);
+    font-family: var(--t-body);
     min-height: 100vh;
   }
 
   .hero {
-    background: linear-gradient(180deg, #0a1628 0%, #0d1a2e 100%);
-    border-bottom: 2px solid #00b4e6;
+    background: linear-gradient(180deg, var(--t-bg-deep) 0%, var(--t-bg) 100%);
+    border-bottom: 2px solid var(--t-accent);
     padding: 2.5rem 1.25rem 2rem;
     text-align: center;
     position: relative;
@@ -31,8 +34,8 @@
       45deg,
       transparent,
       transparent 40px,
-      rgba(0,180,230,0.03) 40px,
-      rgba(0,180,230,0.03) 41px
+      color-mix(in srgb, var(--t-accent) 3%, transparent) 40px,
+      color-mix(in srgb, var(--t-accent) 3%, transparent) 41px
     );
     pointer-events: none;
   }
@@ -53,12 +56,12 @@
     font-size: 2.2rem;
     font-weight: 800;
     letter-spacing: -0.01em;
-    color: #f5c518;
+    color: var(--t-highlight);
     line-height: 1.1;
   }
 
   .event-name span {
-    color: #f5c518;
+    color: var(--t-highlight);
     display: inline;
   }
 
@@ -77,14 +80,14 @@
     align-items: center;
     gap: 6px;
     font-size: 0.85rem;
-    color: #a8bdd4;
+    color: var(--t-muted);
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(0,180,230,0.2);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
     border-radius: 99px;
     padding: 4px 14px;
   }
 
-  .meta-pill svg { width: 13px; height: 13px; flex-shrink: 0; color: #00b4e6; }
+  .meta-pill svg { width: 13px; height: 13px; flex-shrink: 0; color: var(--t-accent); }
 
   .link-row {
     display: flex;
@@ -101,9 +104,9 @@
     font-size: 0.8rem;
     font-weight: 600;
     text-decoration: none;
-    color: #a8bdd4;
+    color: var(--t-muted);
     background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(0,180,230,0.2);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
     border-radius: 99px;
     padding: 4px 14px;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
@@ -112,18 +115,18 @@
   .link-pill svg { width: 13px; height: 13px; flex-shrink: 0; }
 
   .link-pill:hover {
-    background: rgba(0,180,230,0.15);
-    color: #e8edf5;
-    border-color: rgba(0,180,230,0.4);
+    background: color-mix(in srgb, var(--t-accent) 15%, transparent);
+    color: var(--t-ink);
+    border-color: color-mix(in srgb, var(--t-accent) 40%, transparent);
   }
 
   .link-pill:active { transform: scale(0.97); }
 
   .link-pill.twitch svg { color: #9146ff; }
   .link-pill.discord svg { color: #5865f2; }
-  .link-pill.twitter svg { color: #e8edf5; }
-  .link-pill.bluesky svg { color: #00b4e6; }
-  .link-pill.startgg svg { color: #f5c518; }
+  .link-pill.twitter svg { color: var(--t-ink); }
+  .link-pill.bluesky svg { color: var(--t-accent); }
+  .link-pill.startgg svg { color: var(--t-highlight); }
 
   /* Nav */
   .subnav {
@@ -146,30 +149,30 @@
   }
 
   .subnav a.active {
-    background: #00b4e6;
-    color: #0a1628;
-    border: 1px solid #00b4e6;
+    background: var(--t-accent);
+    color: var(--t-bg-deep);
+    border: 1px solid var(--t-accent);
   }
 
   .subnav a.inactive {
     background: rgba(255,255,255,0.05);
-    color: #a8bdd4;
-    border: 1px solid rgba(0,180,230,0.25);
+    color: var(--t-muted);
+    border: 1px solid color-mix(in srgb, var(--t-accent) 25%, transparent);
   }
 
   .subnav a.inactive:hover {
-    background: rgba(0,180,230,0.12);
-    color: #e8edf5;
+    background: color-mix(in srgb, var(--t-accent) 12%, transparent);
+    color: var(--t-ink);
   }
 
   .notice {
-    background: rgba(245,197,24,0.08);
-    border: 1px solid rgba(245,197,24,0.25);
+    background: color-mix(in srgb, var(--t-highlight) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--t-highlight) 25%, transparent);
     border-radius: 8px;
     padding: 0.6rem 1rem;
     margin: 1.25rem 1.25rem 0;
     font-size: 0.78rem;
-    color: #f5c518;
+    color: var(--t-highlight);
     text-align: center;
   }
 
@@ -182,10 +185,10 @@
     font-weight: 700;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #00b4e6;
+    color: var(--t-accent);
     margin-bottom: 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(0,180,230,0.2);
+    border-bottom: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -195,7 +198,7 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: rgba(0,180,230,0.15);
+    background: color-mix(in srgb, var(--t-accent) 15%, transparent);
   }
 
   .item {
@@ -211,20 +214,20 @@
   .time-col {
     min-width: 100px;
     font-size: 0.78rem;
-    color: #7a9ab8;
+    color: var(--t-muted-2);
     padding-top: 3px;
     line-height: 1.4;
     white-space: nowrap;
   }
 
-  .time-col .end-time { display: block; font-size: 0.72rem; color: #4e6a84; }
+  .time-col .end-time { display: block; font-size: 0.72rem; color: var(--t-faint); }
 
   .item-info { flex: 1; }
 
   .item-name {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #e8edf5;
+    color: var(--t-ink);
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -234,7 +237,7 @@
 
   .item-sub {
     font-size: 0.78rem;
-    color: #7a9ab8;
+    color: var(--t-muted-2);
     margin-top: 2px;
   }
 
@@ -248,10 +251,10 @@
     white-space: nowrap;
   }
 
-  .tag-main   { background: rgba(0,180,230,0.15); color: #00b4e6; border: 1px solid rgba(0,180,230,0.3); }
-  .tag-side   { background: rgba(245,197,24,0.12); color: #f5c518; border: 1px solid rgba(245,197,24,0.3); }
-  .tag-social { background: rgba(130,90,200,0.15); color: #b07ef5; border: 1px solid rgba(130,90,200,0.3); }
-  .tag-wrap   { background: rgba(255,255,255,0.06); color: #7a9ab8; border: 1px solid rgba(255,255,255,0.1); }
+  .tag-main   { background: color-mix(in srgb, var(--t-accent) 15%, transparent); color: var(--t-accent); border: 1px solid color-mix(in srgb, var(--t-accent) 30%, transparent); }
+  .tag-side   { background: color-mix(in srgb, var(--t-highlight) 12%, transparent); color: var(--t-highlight); border: 1px solid color-mix(in srgb, var(--t-highlight) 30%, transparent); }
+  .tag-social { background: color-mix(in srgb, var(--t-accent-3) 15%, transparent); color: var(--t-accent-3); border: 1px solid color-mix(in srgb, var(--t-accent-3) 30%, transparent); }
+  .tag-wrap   { background: rgba(255,255,255,0.06); color: var(--t-muted-2); border: 1px solid rgba(255,255,255,0.1); }
 
   .dot {
     width: 8px;
@@ -260,18 +263,26 @@
     margin-top: 5px;
     flex-shrink: 0;
   }
-  .dot-main   { background: #00b4e6; box-shadow: 0 0 6px rgba(0,180,230,0.5); }
-  .dot-side   { background: #f5c518; box-shadow: 0 0 6px rgba(245,197,24,0.4); }
-  .dot-social { background: #b07ef5; }
-  .dot-wrap   { background: #4e6a84; }
+  .dot-main   { background: var(--t-accent); box-shadow: 0 0 6px color-mix(in srgb, var(--t-accent) 50%, transparent); }
+  .dot-side   { background: var(--t-highlight); box-shadow: 0 0 6px color-mix(in srgb, var(--t-highlight) 40%, transparent); }
+  .dot-social { background: var(--t-accent-3); }
+  .dot-wrap   { background: var(--t-faint); }
 
   .footer {
     text-align: center;
     padding: 1.5rem 1.25rem;
-    border-top: 1px solid rgba(0,180,230,0.15);
+    border-top: 1px solid color-mix(in srgb, var(--t-accent) 15%, transparent);
     font-size: 0.75rem;
-    color: #4e6a84;
+    color: var(--t-faint);
   }
+
+  /* Theme: fonts + background pattern (colors come from /theme.css) */
+  body { font-family: var(--t-body); }
+  .event-name, .day-label, .stage-label, .round-label, .stage-tab, .subnav a, .cp-pool-label { font-family: var(--t-display); }
+  .event-name { font-weight: 800; letter-spacing: .01em; text-transform: uppercase; }
+  .hero::before { background: var(--t-pattern) !important; }
+  .stage-tab.active, .subnav a.active { color: var(--t-accent-ink); }
+  .stage-tab.active { color: var(--t-highlight-ink); }
 </style>
 </head>
 <body>
@@ -309,7 +320,7 @@
       </a>
       <a href="https://www.start.gg/tournament/gridlock-2026/event/4v4-tournament" target="_blank" rel="noopener" class="link-pill startgg">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.24 7.5 3.76-7.5 3.76L4.5 8 12 4.24ZM4 9.62l7 3.5v6.76l-7-3.5V9.62Zm9 10.26v-6.76l7-3.5v6.76l-7 3.5Z"/></svg>
-        bracket
+        Bracket
       </a>
     </div>
   </div>
@@ -325,7 +336,6 @@
 
 <div class="footer" id="footnote"></div>
 <div></div>
-<script src="/site-config.js"></script>
 <script src="/shared/hero.js"></script>
 <script src="/schedule/schedule-data.js"></script>
 <script src="/schedule/schedule.js"></script>
