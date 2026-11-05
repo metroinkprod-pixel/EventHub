@@ -1,0 +1,69 @@
+/* =====================================================================
+   EVENT THEME: one set of colors and fonts for every page in the hub.
+   Pick a theme in site-config.js:   theme: "halloween"
+   Preview any theme on any page by adding ?theme=winter to the address.
+   To make a new theme, copy one block below, rename it, change the colors.
+   ===================================================================== */
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap");
+
+/* Default = Halloween (used if no theme is set) */
+:root,
+:root[data-theme="halloween"] {
+  --t-bg:          #141016;   /* page background */
+  --t-bg-deep:     #0c090e;   /* headers, footers, menu bar */
+  --t-surface:     #1e1921;   /* cards, panels, rows */
+  --t-surface-2:   #2a2330;   /* raised / hovered things */
+  --t-line:        #3b3142;   /* borders, dividers */
+  --t-ink:         #f5efe6;   /* main text */
+  --t-ink-2:       #d8cfc4;   /* softer text */
+  --t-muted:       #b3a7b8;   /* secondary text */
+  --t-muted-2:     #8f8396;   /* times, small labels */
+  --t-faint:       #6f6478;   /* least important text */
+  --t-accent:      #ea602e;   /* main brand color (pumpkin) */
+  --t-accent-ink:  #1a0b03;   /* text on top of the accent */
+  --t-highlight:   #ffcc00;   /* titles, scores, active tabs (candy corn) */
+  --t-highlight-ink: #1a1300;
+  --t-accent-3:    #a66cff;   /* third color (spooky purple) */
+  --t-side-a:      #a66cff;   /* free play: side A */
+  --t-side-b:      #ffb02e;   /* free play: side B */
+  --t-good:        #57d68d;
+  --t-warn:        #ffb02e;
+  --t-danger:      #ff5a5f;
+  --t-display:     "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --t-body:        "Barlow", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --t-pattern:     repeating-linear-gradient(45deg, transparent 0 38px, color-mix(in srgb, var(--t-accent) 6%, transparent) 38px 40px);
+  color-scheme: dark;
+}
+
+/* Gridlock (navy, cyan, gold) */
+:root[data-theme="gridlock"] {
+  --t-bg: #0d1a2e; --t-bg-deep: #0a1628; --t-surface: #13233d; --t-surface-2: #1a2d4c; --t-line: #22395c;
+  --t-ink: #e8edf5; --t-ink-2: #c9d5e4; --t-muted: #a8bdd4; --t-muted-2: #7a9ab8; --t-faint: #4e6a84;
+  --t-accent: #00b4e6; --t-accent-ink: #0a1628; --t-highlight: #f5c518; --t-highlight-ink: #0a1628;
+  --t-accent-3: #b07ef5; --t-side-a: #77a0ff; --t-side-b: #f3a646;
+  --t-good: #4fd6a8; --t-warn: #f5c518; --t-danger: #ff6b74;
+  --t-pattern: repeating-linear-gradient(45deg, transparent 0 40px, color-mix(in srgb, var(--t-accent) 4%, transparent) 40px 41px);
+}
+
+/* Winter (ice blue, frost) */
+:root[data-theme="winter"] {
+  --t-bg: #0f1620; --t-bg-deep: #0a1018; --t-surface: #172231; --t-surface-2: #1f2d40; --t-line: #2c3d55;
+  --t-ink: #eef4fb; --t-ink-2: #d2deeb; --t-muted: #a9bbd0; --t-muted-2: #8299b3; --t-faint: #56708d;
+  --t-accent: #6cc4ff; --t-accent-ink: #06121e; --t-highlight: #c9f1ff; --t-highlight-ink: #06121e;
+  --t-accent-3: #b49cff; --t-side-a: #6cc4ff; --t-side-b: #ff9f80;
+  --t-good: #63e2b7; --t-warn: #ffd27a; --t-danger: #ff7a85;
+  --t-pattern: radial-gradient(color-mix(in srgb, #ffffff 7%, transparent) 1px, transparent 1.5px) 0 0 / 22px 22px;
+}
+
+/* Neon (stream purple, electric yellow) */
+:root[data-theme="neon"] {
+  --t-bg: #111015; --t-bg-deep: #09080c; --t-surface: #1b1922; --t-surface-2: #25222f; --t-line: #343042;
+  --t-ink: #f2f0f7; --t-ink-2: #d4d0e0; --t-muted: #aaa5bb; --t-muted-2: #8a849e; --t-faint: #625c77;
+  --t-accent: #9146ff; --t-accent-ink: #ffffff; --t-highlight: #e6ff3d; --t-highlight-ink: #111015;
+  --t-accent-3: #2ee6d6; --t-side-a: #2ee6d6; --t-side-b: #ff5cc8;
+  --t-good: #4be38f; --t-warn: #ffc83d; --t-danger: #ff5a6e;
+  --t-pattern: repeating-linear-gradient(-45deg, transparent 0 28px, color-mix(in srgb, var(--t-accent) 7%, transparent) 28px 30px);
+}
+
+/* Shared touches every page gets */
+::selection { background: var(--t-accent); color: var(--t-accent-ink); }
