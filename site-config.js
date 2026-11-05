@@ -30,9 +30,9 @@ window.HUB = {
    //   links: [{ text, href }, ...]  buttons; the first one is the bold one
    //   Activities without links are listed in a short "Also today" box underneath.
    activities: [
-     { title: "4v4 Splatoon Tournament", main: true, text: "The main event. Find your wave on the schedule, each round's maps on the map list, and live matches on the station board.",
+     { title: "Splatoon Tournament", main: true, text: "Find your wave on the schedule, each round's maps on the map list, and live matches on the station board.",
        links: [{ text: "Schedule", href: "/schedule/" }, { text: "Map list", href: "/maps/" }, { text: "Station board", href: "/stations/" }] },
-     { title: "Free Play", text: "Scrims on open stations all day. Check in and get matched.", links: [{ text: "Check in", href: "/matchmaker/" }] },
+     { title: "Organized Scrims", text: "Organize a scrim on an open station. Check in and get matched up. Contact a T.O", links: [{ text: "Check in", href: "/matchmaker/" }] },
      { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
      { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
      { title: "Art Show", text: "Check out the art on display throughout the venue." },
