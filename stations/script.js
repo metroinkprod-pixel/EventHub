@@ -130,6 +130,7 @@ function renderBoard(activeByStation) {
     if (!groups[set.phase]) {
       groups[set.phase] = {
         style: set.phaseStyle,
+        order: set.phaseOrder || 0,
         sets: []
       };
     }
@@ -137,7 +138,10 @@ function renderBoard(activeByStation) {
   });
 
   let html = '';
-  Object.keys(groups).forEach(function(phaseName) {
+  // Show bracket stages in start.gg's order (pools first, finals last).
+  Object.keys(groups).sort(function(a, b) {
+    return (groups[a].order || 0) - (groups[b].order || 0);
+  }).forEach(function(phaseName) {
     const group = groups[phaseName];
     html += `<div class="bracket-label ${esc(group.style.css)}">${esc(phaseName)}</div>`;
     group.sets.forEach(function(set, index) {
