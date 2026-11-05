@@ -2,6 +2,7 @@
 //   theme: "halloween"                        (name of a block in theme.css)
 //   themeColors: { accent: "#ea602e" }        (optional: override single colors)
 //   font: "Barlow"                            (optional: any Google Font name, used on every page)
+//   favicon: "/assets/favicon.png"            (the browser-tab logo for every page)
 // Preview without changing anything: add ?theme=winter to any page address.
 (function () {
   var H = window.HUB || {};
@@ -19,6 +20,12 @@
       document.head.appendChild(l);
     }
   }
+  // One browser-tab logo for every page (replaces any page's own icon).
+  var icon = H.favicon || "/assets/favicon.png";
+  [].slice.call(document.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]')).forEach(function (l) { l.remove(); });
+  [["icon", icon], ["apple-touch-icon", icon]].forEach(function (x) {
+    var l = document.createElement("link"); l.rel = x[0]; l.href = x[1]; document.head.appendChild(l);
+  });
   var c = H.themeColors || {};
   Object.keys(c).forEach(function (k) {
     if (c[k]) root.style.setProperty("--t-" + k.replace(/[A-Z]/g, function (m) { return "-" + m.toLowerCase(); }), c[k]);
