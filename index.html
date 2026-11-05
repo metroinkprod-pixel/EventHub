@@ -125,7 +125,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
         (a.text ? "<p>" + O.esc(a.text) + "</p>" : "") +
         (ls.length ? '<div class="btns">' + ls.map(function (l, i) {
           var ext = /^https?:/i.test(l.href);
-          return '<a class="go' + (i ? " alt" : "") + '" href="' + O.esc(l.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(l.text || "Open") + "</a>";
+          return '<a class="go" href="' + O.esc(l.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(l.text || "Open") + "</a>";    
         }).join("") + "</div>" : "") + "</div>";
     }).join("");
     if (plain.length) {
