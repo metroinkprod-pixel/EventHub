@@ -20,6 +20,21 @@
       document.head.appendChild(l);
     }
   }
+  // Page names, e.g. "Big Dapple Schedule". Uses shortName (or eventName) from site-config.js.
+  var short = H.shortName || H.eventName || "Event";
+  var PAGES = { "/": H.eventName || short + " Event Hub", "/schedule/": short + " Schedule", "/maps/": short + " Map List",
+                "/stations/": short + " Stations", "/matchmaker/": short + " Free Play", "/run-of-show/": short + " Run of Show",
+                "/checkin/": short + " Check-in" };
+  var p = location.pathname.replace(/index\.html$/, "");
+  if (p.length > 1 && !p.endsWith("/")) p += "/";
+  var pageTitle = PAGES[p];
+  if (pageTitle) {
+    window.HUB_PAGE_TITLE = pageTitle;
+    document.title = pageTitle;
+    // Some pages (free play) set their own title later; keep ours.
+    new MutationObserver(function () { if (document.title !== pageTitle) document.title = pageTitle; })
+      .observe(document.head, { subtree: true, childList: true, characterData: true });
+  }
   // One browser-tab logo for every page (replaces any page's own icon).
   var icon = H.favicon || "/assets/favicon.png";
   [].slice.call(document.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]')).forEach(function (l) { l.remove(); });

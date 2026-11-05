@@ -3,8 +3,8 @@
 (function () {
   var H = window.HUB || {}, L = H.links || {};
   var name = document.querySelector(".event-name");
-  if (name && H.eventName) name.textContent = H.eventName;
-  if (H.eventName) document.title = document.title.replace(/^[^—]*—/, H.eventName + " —");
+  // Heading = page name, e.g. "Big Dapple Schedule" (set by theme.js from shortName in site-config.js)
+  if (name && (window.HUB_PAGE_TITLE || H.eventName)) name.textContent = window.HUB_PAGE_TITLE || H.eventName;
   var logo = document.querySelector(".logo-wrap img");
   if (logo && H.logo) { logo.src = H.logo; logo.alt = (H.eventName || "Event") + " logo"; }
   var pills = document.querySelectorAll(".event-meta > .meta-pill");
