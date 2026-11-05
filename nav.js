@@ -35,7 +35,6 @@
     ".hubnav a:hover{background:var(--t-surface-2,#1a2438);color:var(--t-ink,#fff)}" +
     ".hubnav a[aria-current=page]{background:var(--t-accent,#e8edf5);color:var(--t-accent-ink,#0b1220)}" +
     ".hubnav .sep{width:1px;align-self:stretch;margin:4px 6px;background:var(--t-line,#26324a);flex:none}" +
-    ".hubnav a.staff::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--t-warn,#f2b04f);margin-right:6px;vertical-align:middle}" +
     ".hubnav:not(.is-staff) .staff{display:none}" +
     ".hubnav .auth{flex:none;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;white-space:nowrap;padding:7px 12px;border-radius:" + R + ";" +
     "border:1px solid var(--t-line,#26324a);background:none;color:var(--t-ink,#fff)}" +

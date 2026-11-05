@@ -45,7 +45,8 @@
     });
   }
   iconize(document);
-  if (!cfg.sheetCsvUrl) return;
+  function ready() { document.documentElement.classList.remove("maps-loading"); }
+  if (!cfg.sheetCsvUrl) { ready(); return; }
 
   function esc(x) { return String(x == null ? "" : x).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function parseCsv(text) {
@@ -140,6 +141,7 @@
     .then(function (t) {
       if (/^\s*</.test(t)) throw new Error("Got a web page, not CSV. Use File > Share > Publish to web > CSV.");
       draw(build(parseCsv(t)));
+      ready();
     })
-    .catch(function (e) { console.warn("Map list sheet failed; showing the map list written in the page:", e); });
+    .catch(function (e) { console.warn("Map list sheet failed; showing the map list written in the page:", e); ready(); });
 })();

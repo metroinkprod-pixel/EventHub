@@ -302,6 +302,26 @@
     };
   }
 
+  // ---------- floor plan ----------
+  // Image(s) in the repo, set in site-config.js:
+  //   floorplan: "/assets/floorplan.png"
+  //   or several: floorplan: [{ title: "Main hall", src: "/assets/floor-main.png" }, { title: "Side room", src: "/assets/floor-side.png" }]
+  function viewFloor() {
+    var fp = (window.HUB && HUB.floorplan) || "/assets/floorplan.png";
+    var list = (Array.isArray(fp) ? fp : [{ title: "", src: fp }]).filter(function (x) { return x && x.src; });
+    main.innerHTML = '<section class="floor" style="display:grid;gap:16px">' + list.map(function (x, i) {
+      return '<figure>' + (x.title ? "<figcaption>" + esc(x.title) + "</figcaption>" : "") +
+        '<a href="' + esc(x.src) + '" target="_blank" rel="noopener"><img src="' + esc(x.src) + '" alt="' + esc(x.title || "Floor plan") + '" data-i="' + i + '"></a>' +
+        '<span class="small muted">Tap the image to open it full size and zoom in.</span></figure>';
+    }).join("") + "</section>";
+    main.querySelectorAll(".floor img").forEach(function (img) {
+      img.onerror = function () {
+        img.closest("figure").innerHTML = '<div class="notice"><b>No floor plan yet.</b> Add your image to the repo as <code>' + esc(img.getAttribute("src")) +
+          '</code> (or set <code>floorplan</code> in site-config.js), commit, and it shows up here.</div>';
+      };
+    });
+  }
+
   // ---------- tools ----------
   var FIELDS = [["", "Ignore"], ["start", "Start time"], ["end", "End time"], ["category", "Category"], ["task", "Task"], ["owner", "Owner"], ["notes", "Notes"]];
   function guessMapping(table) {
@@ -488,15 +508,15 @@
   // ---------- rendering ----------
   function render() {
     var staff = O.can("staff");
-    var tab = staff ? view.tab : "mine";   // volunteers only see their own shifts
+    var tab = staff || view.tab === "floor" ? view.tab : "mine";   // volunteers: their own shifts + floor plan
     document.querySelectorAll("#tabs button").forEach(function (b) {
       b.setAttribute("aria-pressed", String(b.dataset.tab === tab));
-      b.hidden = O.unlocked() && !staff && b.dataset.tab !== "mine";
+      b.hidden = O.unlocked() && !staff && b.dataset.tab !== "mine" && b.dataset.tab !== "floor";
     });
     if (!O.configured) { main.innerHTML = O.notConfiguredHtml(); return; }
     if (!O.unlocked()) { main.innerHTML = O.lockedHtml("the run of show and shifts"); return; }
     if (!loaded || !O.roleKnown()) { main.innerHTML = '<p class="muted">Loading…</p>'; return; }
-    ({ now: viewNow, timeline: viewTimeline, mine: viewMine, tools: viewTools }[tab] || viewNow)();
+    ({ now: viewNow, timeline: viewTimeline, mine: viewMine, floor: viewFloor, tools: viewTools }[tab] || viewNow)();
   }
   var draw = O.makeRenderer(render, function () { return !!view.editing; });
   document.querySelectorAll("#tabs button").forEach(function (b) {
@@ -537,6 +557,6 @@
       });
     });
     if (O.unlocked()) { O.checkSavedPin().finally(function () { poller.now(); }); } else { O.setConn(false, "Locked"); render(); }
-    setInterval(function () { if (view.tab !== "tools" && loaded) draw(); }, 30000);
+    setInterval(function () { if (view.tab !== "tools" && view.tab !== "floor" && loaded) draw(); }, 30000);
   })();
 })();

@@ -7,6 +7,18 @@
 <link rel="stylesheet" href="/theme.css">
 <script src="/site-config.js"></script>
 <script src="/theme.js"></script>
+<script>
+  // When the map list comes from a Google Sheet, hide the saved copy until the sheet arrives
+  // (maplist.js shows it again; after 5 seconds the saved copy shows anyway).
+  if (window.HUB && HUB.maps && HUB.maps.sheetCsvUrl) {
+    document.documentElement.classList.add("maps-loading");
+    setTimeout(function () { document.documentElement.classList.remove("maps-loading"); }, 5000);
+  }
+</script>
+<style>
+  .maps-loading .stage-tabs, .maps-loading .content > * { visibility: hidden; }
+  .maps-loading .content { min-height: 60vh; }
+</style>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
