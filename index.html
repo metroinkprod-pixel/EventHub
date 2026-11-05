@@ -74,8 +74,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
 <script>
 (function () {
   var H = window.HUB || {}, O = window.Ops;
-  // Heading = "Big Dapple Event Hub" (set by theme.js from shortName in site-config.js)
-  document.getElementById("ev").textContent = window.HUB_PAGE_TITLE || H.eventName || "Event Hub";
+  if (H.eventName) document.getElementById("ev").textContent = H.eventName;
   // Event logo (same one as the schedule and map list: "logo" in site-config.js)
   var logo = document.getElementById("logo");
   if (H.logo) {

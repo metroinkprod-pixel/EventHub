@@ -23,45 +23,25 @@
   if (foot && window.HUB) foot.textContent = [HUB.eventName, HUB.location].filter(Boolean).join(" · ") || foot.textContent;
 
   var ICON_NAMES = { sz: "Splat Zones", tc: "Tower Control", rm: "Rainmaker", cb: "Clam Blitz", tw: "Turf War" };
-  // Find each mode's icon once. Looks in /assets/modes/ and /assets/, lower or upper case
-  // (sz.png or SZ.png), as .png, .svg, .webp, .jpg or .PNG. The first one that loads wins.
-  var iconCache = {};
-  function findIcon(code) {
-    if (iconCache[code]) return iconCache[code];
-    var exts = cfg.iconType ? [String(cfg.iconType).replace(/^\./, "")] : ["png", "svg", "webp", "jpg", "PNG"];
-    var urls = [];
-    ["/assets/modes/", "/assets/"].forEach(function (dir) {
-      [code, code.toUpperCase()].forEach(function (name) {
-        exts.forEach(function (ext) { urls.push(dir + name + "." + ext); });
-      });
-    });
-    iconCache[code] = new Promise(function (resolve) {
-      (function next(i) {
-        if (i >= urls.length) { console.info("No icon found for " + code + " (looked for e.g. " + urls[0] + ")"); return resolve(null); }
-        var img = new Image();
-        img.onload = function () { resolve(urls[i]); };
-        img.onerror = function () { next(i + 1); };
-        img.src = urls[i];
-      })(0);
-    });
-    return iconCache[code];
-  }
   function iconize(root) {
+    var ext = (cfg.iconType || "png").replace(/^\./, "");
     root.querySelectorAll(".mode-tag").forEach(function (tag) {
       if (tag.dataset.iconized) return;
       tag.dataset.iconized = "1";
       var m = /\bmode-(sz|tc|rm|cb|tw)\b/.exec(tag.className);
       if (!m) return;
       var label = tag.textContent.trim();
-      findIcon(m[1]).then(function (url) {
-        if (!url) return;
-        var img = new Image();
-        img.className = "mode-icon"; img.alt = ICON_NAMES[m[1]]; img.title = ICON_NAMES[m[1]]; img.src = url;
+      var img = new Image();
+      img.className = "mode-icon";
+      img.alt = ICON_NAMES[m[1]];
+      img.title = ICON_NAMES[m[1]];
+      img.onload = function () {
         tag.classList.add("has-icon");
         tag.textContent = "";
         tag.appendChild(img);
         var sr = document.createElement("span"); sr.className = "sr-only"; sr.textContent = label; tag.appendChild(sr);
-      });
+      };
+      img.src = "/assets/modes/" + m[1] + "." + ext;
     });
   }
   iconize(document);
