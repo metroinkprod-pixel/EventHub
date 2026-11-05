@@ -2,7 +2,7 @@
 //  EVENT HUB SETTINGS: the one file to edit for each event.
 // ===================================================================
 window.HUB = {
-  eventName: "Big Dapple Event Hub",                       // shown on the hub and staff tools
+  eventName: "Big Dapple",                       // shown on the hub and staff tools
   eventDate: "November 7th, 2026",                                // e.g. "Saturday, Dec 5"
   location: "OSNYC - Chinatown",
   logo: "/assets/EventLogo.png",
