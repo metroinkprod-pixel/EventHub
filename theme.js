@@ -21,8 +21,9 @@
     }
   }
   // Page names, e.g. "Big Dapple Schedule". Uses shortName (or eventName) from site-config.js.
-  var short = H.shortName || H.eventName || "Event";
-  var PAGES = { "/": H.eventName || short + " Event Hub", "/schedule/": short + " Schedule", "/maps/": short + " Map List",
+  // No shortName? Use eventName without a trailing "Event Hub" / "Hub" ("Big Dapple Event Hub" -> "Big Dapple").
+  var short = (H.shortName || String(H.eventName || "Event").replace(/\s*[-–—:|·]?\s*(event\s*)?hub\s*$/i, "")).trim() || "Event";
+  var PAGES = { "/": short + " Event Hub", "/schedule/": short + " Schedule", "/maps/": short + " Map List",
                 "/stations/": short + " Stations", "/matchmaker/": short + " Free Play", "/run-of-show/": short + " Run of Show",
                 "/checkin/": short + " Check-in" };
   var p = location.pathname.replace(/index\.html$/, "");
