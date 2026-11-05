@@ -23,15 +23,21 @@ window.HUB = {
     SUPABASE_URL: "https://vciynxamtqfimsdgrkli.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_LzIJLHgEmD04ouXRw0VO3w_n5wlaxBT"
   },
-   // "Today's activities" on the hub page. Remove the list (or leave it empty) to hide the section.
-   //   title (required), text, when, link, linkText, main: true (marks the main event), tag (small label)
+ // "Today's activities" on the hub page. Remove the list (or leave it empty) to hide the section.
+ //   title (required), text, when, link, linkText, main: true (marks the main event), tag (small label)
+   // "Today's activities" on the hub page (replaces the plain page links when set).
+   //   title (required), text, when, main: true (the main event card, shown first), tag (small label)
+   //   links: [{ text, href }, ...]  buttons; the first one is the bold one
+   //   Activities without links are listed in a short "Also today" box underneath.
    activities: [
-     { title: "4v4 Splatoon Tournament", main: true, text: "The main event. Check the schedule for your wave and the map list for each round.", link: "/schedule/", linkText: "Schedule" },
+     { title: "4v4 Splatoon Tournament", main: true, text: "The main event. Find your wave on the schedule, each round's maps on the map list, and live matches on the station board.",
+       links: [{ text: "Schedule", href: "/schedule/" }, { text: "Map list", href: "/maps/" }, { text: "Station board", href: "/stations/" }] },
+     { title: "Free Play", text: "Scrims on open stations all day. Check in and get matched.", links: [{ text: "Check in", href: "/matchmaker/" }] },
+     { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
      { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
-     { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", link: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA", linkText: "Enter or vote" },
-     { title: "Art Show", text: "Check out the art on display throughout the venue." }
-   ],
-  // Links shown on the hub home page. Leave a link "" to hide it.
+     { title: "Art Show", text: "Check out the art on display throughout the venue." },
+     { title: "Merch Desk", text: "Shirts, stickers and more by the entrance." }
+   ],  // Links shown on the hub home page. Leave a link "" to hide it.
   links: {
     stream:  "https://twitch.tv/GenGame",
     discord: "https://discord.gg/X5SWeJtX7h",
