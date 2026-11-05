@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Check-in</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✅</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/theme.css">
+<script src="/site-config.js"></script>
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="/shared/ops.css">
 <style>
 .summary { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -18,7 +18,7 @@
 .search { width: 100%; font-size: 1.15rem; padding: 12px 14px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip { border: 1px solid var(--line); background: var(--bg); padding: 5px 12px; border-radius: 99px; cursor: pointer; font-weight: 700; font-size: .88rem; }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--t-highlight); color: var(--t-highlight-ink); border-color: var(--t-highlight); }
 .teams { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 .team { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; gap: 10px; align-content: start; }
 .team.in { border-color: var(--done); box-shadow: inset 4px 0 0 var(--done); }
@@ -61,7 +61,6 @@
 <main class="wrap" id="main"><p class="muted">Loading…</p></main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="/site-config.js"></script>
 <script src="/shared/ops.js"></script>
 <script src="/nav.js"></script>
 <script src="/checkin/app.js"></script>
