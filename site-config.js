@@ -23,7 +23,14 @@ window.HUB = {
     SUPABASE_URL: "https://vciynxamtqfimsdgrkli.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_LzIJLHgEmD04ouXRw0VO3w_n5wlaxBT"
   },
-
+   // "Today's activities" on the hub page. Remove the list (or leave it empty) to hide the section.
+   //   title (required), text, when, link, linkText, main: true (marks the main event), tag (small label)
+   activities: [
+     { title: "4v4 Splatoon Tournament", main: true, text: "The main event. Check the schedule for your wave and the map list for each round.", link: "/schedule/", linkText: "Schedule" },
+     { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
+     { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", link: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA", linkText: "Enter or vote" },
+     { title: "Art Show", text: "Check out the art on display throughout the venue." }
+   ],
   // Links shown on the hub home page. Leave a link "" to hide it.
   links: {
     stream:  "https://twitch.tv/GenGame",
