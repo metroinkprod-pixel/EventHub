@@ -4,7 +4,12 @@
 window.HUB = {
   eventName: "Big Dapple Event Hub",                       // shown on the hub and staff tools
   eventDate: "November 7th, 2026",                                // e.g. "Saturday, Dec 5"
-
+  location: "OSNYC - Chinatown",
+  logo: "/assets/NintendoGridlock.png",
+  schedule: {
+    sheetCsvURL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxJHWk7ezAlQqyBteElG9YFFL3Ut_napJK-PW6Mjg4NeHvcoPdkFYEg18lAncZL8Fq07A_sGbmVXX4/pub?gid=1526195846&single=true&output=csv",
+    footnote: "Schedule is subject to bracket performance. Times Times assume every map in a set is played."
+  },
   // Supabase project for Run of Show + Check-in (NOT the matchmaker's project).
   // Supabase > Project Settings > API: Project URL and the anon / publishable key.
   // The anon key is meant to be public; edits are protected by the staff PIN.
