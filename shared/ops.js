@@ -243,18 +243,68 @@
   };
 
   // Don't redraw under someone's fingers while they type.
+  // Don't redraw under someone's fingers.
+  //  * While a box in <main> has focus, redraws wait.
+  //  * Forms marked data-draft (with an id) that have unsaved typing also hold back
+  //    background redraws, so clicking "Add" never lands on a form that just got redrawn.
+  //  * When a redraw does happen (e.g. a filter was tapped), whatever was typed into
+  //    data-draft forms is put back.
+  function fieldDirty(el) {
+    if (!el.name || /^(submit|button|reset|hidden)$/.test(el.type)) return false;
+    if (el.type === "checkbox" || el.type === "radio") return el.checked !== el.defaultChecked;
+    if (el.tagName === "SELECT") return [].some.call(el.options, function (o) { return o.selected !== o.defaultSelected; });
+    return el.value !== el.defaultValue;
+  }
+  function drafts() { return [].slice.call(document.querySelectorAll("main form[data-draft][id]")); }
+  Ops.hasDraft = function () { return drafts().some(function (f) { return [].some.call(f.elements, fieldDirty); }); };
+  function snapshot() {
+    var snap = {};
+    drafts().forEach(function (f) {
+      if (![].some.call(f.elements, fieldDirty)) return;
+      var o = {};
+      [].forEach.call(f.elements, function (el) {
+        if (!el.name || /^(submit|button|reset)$/.test(el.type)) return;
+        o[el.name] = (el.type === "checkbox" || el.type === "radio") ? el.checked : el.value;
+      });
+      snap[f.id] = o;
+    });
+    var a = document.activeElement;
+    snap.__focus = a && a.form && a.form.id && a.form.hasAttribute("data-draft") ? { form: a.form.id, name: a.name } : null;
+    return snap;
+  }
+  function restore(snap) {
+    Object.keys(snap).forEach(function (id) {
+      if (id === "__focus") return;
+      var f = document.getElementById(id);
+      if (!f || !f.elements) return;
+      Object.keys(snap[id]).forEach(function (name) {
+        var el = f.elements[name];
+        if (!el || el.length > 1 && !el.tagName) return;
+        if (el.type === "checkbox" || el.type === "radio") el.checked = snap[id][name]; else el.value = snap[id][name];
+      });
+      if (f.tagName === "FORM" && f.querySelector("details")) f.querySelector("details").open = true;
+      var det = f.closest("details"); if (det) det.open = true;
+    });
+    if (snap.__focus) {
+      var ff = document.getElementById(snap.__focus.form), fe = ff && ff.elements[snap.__focus.name];
+      if (fe && fe.focus) fe.focus();
+    }
+  }
   Ops.makeRenderer = function (render, isBusy) {
     var pendingRender = false;
     function busy() {
       var a = document.activeElement;
-      return (isBusy && isBusy()) || (a && a.closest && a.closest("main") && /INPUT|SELECT|TEXTAREA/.test(a.tagName));
+      return (isBusy && isBusy()) || Ops.hasDraft() || (a && a.closest && a.closest("main") && /INPUT|SELECT|TEXTAREA/.test(a.tagName));
     }
+    function safeRender() { var snap = snapshot(); render(); restore(snap); }
     document.addEventListener("focusout", function () {
-      setTimeout(function () { if (pendingRender && !busy()) { pendingRender = false; render(); } }, 0);
+      setTimeout(function () { if (pendingRender && !busy()) { pendingRender = false; safeRender(); } }, 0);
     });
+    // A draft was cleared (form reset after saving): catch up on anything that changed meanwhile.
+    document.addEventListener("reset", function () { setTimeout(function () { if (pendingRender && !busy()) { pendingRender = false; safeRender(); } }, 0); }, true);
     return function schedule(force) {
       if (!force && busy()) { pendingRender = true; return; }
-      pendingRender = false; render();
+      pendingRender = false; safeRender();
     };
   };
 
