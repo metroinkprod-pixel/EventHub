@@ -41,7 +41,21 @@
     <span class="twitch-link">twitch.tv/GenGame</span>
     <span class="divider">|</span>
     <span class="on-stream">ON STREAM: Team Alpha vs Team Beta — Winners Semis · Station 1</span>
+      <a class="bracket-link" id="bracketLink" target="_blank" rel="noopener" hidden></a>
     </footer>
+    <script>
+      // Bracket link in the footer, from "startgg" in site-config.js.
+      // On the TV (?tv) it shows the address so people can type it; elsewhere a small "Bracket" button.
+      (function () {
+        var url = (window.HUB && HUB.links && HUB.links.startgg) || "", a = document.getElementById("bracketLink");
+        if (!url) return;
+        a.href = url;
+        a.textContent = new URLSearchParams(location.search).has("tv")
+          ? "Bracket: " + url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")
+          : "Bracket";
+        a.hidden = false;
+      })();
+    </script>
     <script src="/stations/script.js"></script>
     <script src="/nav.js"></script>
   </body>
