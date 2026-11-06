@@ -11,7 +11,10 @@
   var S = { settings: { stations: 2, station_label: "Station", team_size: 4, best_of: 5, max_streak: 0 }, players: [], matches: [], loaded: false };
   var me = null;
   try { me = JSON.parse(localStorage.getItem(ME_KEY) || "null"); } catch (e) {}
-  var view = { tab: (location.hash || "").replace("#", "") || "play", pick: null };
+  // A phone link from staff ("#link=<id>.<key>") links this phone to a player they added.
+  var linkM = /^#link=([0-9a-f-]{36})\.([0-9a-f]{32})$/.exec(location.hash || "");
+  if (linkM) { me = { id: linkM[1], token: linkM[2] }; try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch (e) {} history.replaceState(null, "", "#play"); }
+  var view = { tab: (location.hash || "").replace("#", "") || "play", pick: null, added: null };
   if (view.tab === "me") view.tab = "play";          // old QR codes pointed to #me
   var busy = false;
 
@@ -19,6 +22,12 @@
 
   // ---------- helpers ----------
   function L() { return S.settings.station_label || "Station"; }
+  // Station numbers in use, e.g. [2] or [1, 3, 4]
+  function nums() {
+    var n = S.settings.station_numbers;
+    if (n && n.length) return n.slice().sort(function (a, b) { return a - b; });
+    var out = []; for (var i = 1; i <= (S.settings.stations || 1); i++) out.push(i); return out;
+  }
   function player(id) { return S.players.find(function (p) { return p.id === id; }); }
   function mine() { return me && player(me.id); }
   function live() { return S.matches.filter(function (m) { return m.status === "active" || m.status === "waiting"; }); }
@@ -42,7 +51,7 @@
     in_match: "You’re in a match right now. Finish it first.",
     already_reported: "Someone already reported this match.", bad_score: "That score doesn’t fit the format.",
     bad_token: "This phone isn’t linked to that player anymore.", not_in_match: "You’re not in this match.",
-    forbidden: "Your PIN can’t do that.",
+    forbidden: "Your PIN can’t do that.", bad_stations: "List the station numbers to use, like 2 or 1, 3, 4.",
     no_sub: "Nobody’s in line to take your spot yet. Finish this game, or ask a staff member.",
     line_empty: "Nobody’s in line. Pick a player to write in.", not_available: "That player is already playing.", bad_time: "Times should look like 17:00.", bad_date: "Pick a date or leave it empty."
   };
@@ -109,8 +118,9 @@
   }
   function freeSpots() {
     var n = 0, s = S.settings;
-    live().forEach(function (m) { if (m.status === "waiting" && m.station <= s.stations) n += s.team_size; });
-    for (var i = 1; i <= s.stations; i++) if (!live().some(function (m) { return m.station === i; })) n += s.team_size * 2;
+    var ns = nums();
+    live().forEach(function (m) { if (m.status === "waiting" && ns.indexOf(m.station) >= 0) n += s.team_size; });
+    ns.forEach(function (i) { if (!live().some(function (m) { return m.station === i; })) n += s.team_size * 2; });
     return n;
   }
   function nextText(pos, total, free) {
@@ -147,7 +157,7 @@
   // ---------- Stations + line ----------
   function viewStations(staff) {
     var s = S.settings, ln = line(), html = '<section class="stations">';
-    for (var i = 1; i <= s.stations; i++) {
+    nums().forEach(function (i) {
       var m = live().find(function (x) { return x.station === i; });
       html += '<article class="panel st"><header><h3>' + esc(L()) + " " + i + "</h3>" +
         (!m ? '<span class="pill skip">Open</span>' : m.status === "active" ? '<span class="pill live">Playing</span>' : '<span class="pill flag">Waiting for challengers</span>') + "</header>";
@@ -156,7 +166,7 @@
       else html += teamHtml(m.a_name, m.a_players, m.a_names, { streak: m.a_streak });
       if (staff && m) html += staffMatchHtml(m);
       html += "</article>";
-    }
+    });
     html += "</section>";
     html += '<section class="panel"><h2 style="margin-bottom:8px">In line (' + ln.length + ")</h2>" +
       (ln.length ? '<ol class="line">' + ln.map(function (p) {
@@ -204,9 +214,17 @@
   function viewStaff() {
     if (!O.can("staff")) return O.unlocked() ? O.noAccessHtml("Staff controls need a staff or owner PIN.") : O.lockedHtml("the pickup games controls");
     var s = S.settings;
-    var html = '<section class="panel"><h2 style="margin-bottom:6px">Settings</h2><p class="lead" style="margin-bottom:10px">Changes apply right away. The page runs itself; use the controls under each ' + esc(L().toLowerCase()) + " only if something goes wrong.</p>" +
+    var link = view.added ? location.origin + "/pickup/#link=" + view.added.id + "." + view.added.token : "";
+    var html = '<section class="panel"><h2 style="margin-bottom:6px">Add a player</h2><p class="lead" style="margin-bottom:10px">For people without a phone, or to write someone in. They join the line; use <b>Swap</b> under a ' + esc(L().toLowerCase()) + " to put them straight onto a team.</p>" +
+      '<form class="bar" id="addf"><label class="f" style="flex:1;min-width:10rem">Name<input type="text" name="name" maxlength="30" required></label>' +
+      '<label class="f" style="flex:1;min-width:10rem">Weapon<input type="text" name="weapon" maxlength="40" list="weapons"></label>' +
+      '<label class="f">Add them<select name="status"><option value="queue">To the line</option><option value="away">On a break (not playing yet)</option></select></label>' +
+      '<button class="btn primary" style="align-self:end">Add player</button></form>' +
+      (view.added ? '<p class="small" style="margin:10px 0 0">Added <b>' + esc(view.added.name) + '</b>. To give them the page on their own phone later, send them this link: ' +
+        '<a href="' + esc(link) + '" style="color:var(--t-accent);overflow-wrap:anywhere">' + esc(link) + '</a> <button class="btn sm" data-act="copy-link" data-v="' + esc(link) + '">Copy</button></p>' : "") + "</section>" +
+      '<section class="panel"><h2 style="margin-bottom:6px">Settings</h2><p class="lead" style="margin-bottom:10px">Changes apply right away. The page runs itself; use the controls under each ' + esc(L().toLowerCase()) + " only if something goes wrong.</p>" +
       '<form class="grid2" id="setf">' +
-      '<label class="f">' + esc(L()) + 's<input type="number" name="stations" min="1" max="30" value="' + s.stations + '"></label>' +
+      '<label class="f">' + esc(L()) + ' numbers to use<input type="text" name="station_numbers" inputmode="numeric" placeholder="e.g. 2  or  1, 3, 4" value="' + esc(nums().join(", ")) + '"></label>' +
       '<label class="f">Call them<select name="station_label">' + ["Station", "Setup", "Court", "Table"].map(function (x) { return "<option" + (x === s.station_label ? " selected" : "") + ">" + x + "</option>"; }).join("") + "</select></label>" +
       '<label class="f">Players per team<input type="number" name="team_size" min="1" max="8" value="' + s.team_size + '"></label>' +
       '<label class="f">Best of<select name="best_of">' + [1, 3, 5, 7].map(function (x) { return "<option" + (x === s.best_of ? " selected" : "") + ">" + x + "</option>"; }).join("") + "</select></label>" +
@@ -253,6 +271,14 @@
       var d = await call("pug_join", { p_name: nm, p_weapon: wp }, "You’re in line!");
       if (d) { me = { id: d.id, token: d.token }; try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch (x) {} draw(true); }
     };
+    var af = $("addf");
+    if (af) af.onsubmit = async function (e) {
+      e.preventDefault();
+      var el = af.elements, nm = el["name"].value.trim();
+      if (!nm) return;
+      var d = await call("pug_staff_add", staffArgs({ p_name: nm, p_weapon: el["weapon"].value.trim(), p_status: el["status"].value }), nm + " added.");
+      if (d) { view.added = { id: d.id, token: d.token, name: nm }; draw(true); }
+    };
     main.querySelectorAll("form.swapf").forEach(function (f) {
       f.onsubmit = function (e) {
         e.preventDefault();
@@ -264,8 +290,8 @@
     if (sf) sf.onsubmit = function (e) {
       e.preventDefault();
       var el = sf.elements, p = {};
-      ["stations", "team_size", "best_of", "max_streak"].forEach(function (k) { p[k] = parseInt(el[k].value, 10); });
-      ["station_label", "opens", "closes", "open_date"].forEach(function (k) { p[k] = el[k].value; });
+      ["team_size", "best_of", "max_streak"].forEach(function (k) { p[k] = parseInt(el[k].value, 10); });
+      ["station_numbers", "station_label", "opens", "closes", "open_date"].forEach(function (k) { p[k] = el[k].value; });
       call("pug_staff_settings", staffArgs({ p: p }), "Settings saved.");
     };
   }
@@ -275,6 +301,7 @@
     var b = e.target.closest("[data-act]"); if (!b) return;
     var act = b.dataset.act;
     if (act === "unlock") return O.askPin();
+    if (act === "copy-link") { try { await navigator.clipboard.writeText(b.dataset.v); O.toast("Link copied"); } catch (x) { prompt("Copy this link:", b.dataset.v); } return; }
     if (act === "pick-w") { view.pick = { id: matchOf(me.id).id, w: b.dataset.w, l: null }; return draw(true); }
     if (act === "pick-s") { view.pick.l = +b.dataset.l; return draw(true); }
     if (act === "report") {
