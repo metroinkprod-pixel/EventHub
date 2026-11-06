@@ -38,6 +38,10 @@ window.HUB = {
      { title: "Art Show", text: "Check out the art on display throughout the venue." },
      { title: "Merch Desk", text: "Shirts, stickers and more past the stage area." }
    ],  // Links shown on the hub home page. Leave a link "" to hide it.
+     // Scrims page (matchmaker): its name, and when it's open (event day, device's local time).
+   //   opens / closes: "5:00 PM" (leave closes "" to stay open)   date: "2026-11-07" (optional: only open on that day)
+   //   closedText: optional message under the opening time
+   scrims: { name: "Organized Scrims", opens: "5:00 PM", closes: "", date: "", closedText: "" },
   links: {
     stream:  "https://twitch.tv/GenGame",
     discord: "https://discord.gg/X5SWeJtX7h",
