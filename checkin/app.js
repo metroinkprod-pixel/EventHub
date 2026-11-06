@@ -72,9 +72,7 @@
     var cls = t.status === "checked_in" ? " in" : t.status === "no_show" ? " no" : "";
     var pill = t.status === "checked_in" ? '<span class="pill done">Checked in ' + esc(timeAgo(t.checked_in_at)) + "</span>" :
       t.status === "no_show" ? '<span class="pill late">No-show</span>' : '<span class="pill flag">Not here yet</span>';
-    var sw = t.switch2 === "bringing" ? '<span class="tag">🎮 Bringing Switch 2</span>' :
-      t.switch2 === "needs" ? '<span class="pill late">Needs a Switch 2</span>' : t.switch2 === "lent" ? '<span class="tag">Borrowing (sorted)</span>' : "";
-    var sub = [t.grp ? '<span class="tag">' + esc(t.grp) + "</span>" : "", t.captain ? "Captain: " + esc(t.captain) : "", t.contact ? esc(t.contact) : "", sw,
+    var sub = [t.grp ? '<span class="tag">' + esc(t.grp) + "</span>" : "", t.captain ? "Captain: " + esc(t.captain) : "", t.contact ? esc(t.contact) : "",
       t.paid ? '<span class="tag">Paid</span>' : ""].filter(Boolean).join(" ");
     return '<article class="team' + cls + '" id="t-' + t.id + '">' +
       '<div class="head"><h3>' + esc(t.name) + "</h3>" + pill + "</div>" +
@@ -92,13 +90,11 @@
 
   function editorHtml(t) {
     var tp = teamPlayers(t);
-    var swOpt = Object.keys(SW).map(function (k) { return '<option value="' + k + '"' + ((t.switch2 || "") === k ? " selected" : "") + ">" + SW[k] + "</option>"; }).join("");
     return '<article class="team editing" id="t-' + t.id + '"><form class="editor" data-id="' + t.id + '">' +
       '<label class="f wide">Team name<input type="text" name="name" required value="' + esc(t.name) + '"></label>' +
       '<label class="f">Group / wave<input type="text" name="grp" list="grps" value="' + esc(t.grp) + '" placeholder="e.g. Wave A"></label>' +
       '<label class="f">Captain<input type="text" name="captain" value="' + esc(t.captain) + '"></label>' +
       '<label class="f">Contact<input type="text" name="contact" value="' + esc(t.contact) + '" placeholder="Discord, phone…"></label>' +
-      '<label class="f">Switch 2<select name="switch2">' + swOpt + "</select></label>" +
       '<label class="f wide">Notes<input type="text" name="notes" value="' + esc(t.notes) + '"></label>' +
       '<label class="small" style="display:flex;gap:6px;align-items:center"><input type="checkbox" name="paid"' + (t.paid ? " checked" : "") + "> Paid</label>" +
       '<div class="wide"><div class="f" style="margin-bottom:4px">Players</div><div class="plist">' +
@@ -155,7 +151,7 @@
       var t = teams.find(function (x) { return x.id === f.dataset.id; }); if (!t) return;
       var el = f.elements;
       var fields = { id: t.id, name: el["name"].value.trim(), grp: el["grp"].value.trim(), captain: el["captain"].value.trim(), contact: el["contact"].value.trim(),
-                     switch2: el["switch2"].value, notes: el["notes"].value.trim(), paid: el["paid"].checked };
+                     notes: el["notes"].value.trim(), paid: el["paid"].checked };
       var r = await run("ops_team_save", { p_team: fields });
       if (!r) return;
       var renames = [];
@@ -181,23 +177,33 @@
       if (r && on) O.toast(a.name + " checked in", function () { attCheck(a, false); });
     });
   }
+  function swSelect(cur) {
+    return '<select name="switch2">' + ["", "bringing", "needs", "lent", "none"].map(function (k) { return '<option value="' + k + '"' + ((cur || "") === k ? " selected" : "") + ">" + SW[k] + "</option>"; }).join("") + "</select>";
+  }
+  function swBadge(a) {
+    return a.switch2 === "needs" ? '<span class="pill late">Needs a Switch 2</span>' : a.switch2 === "bringing" ? '<span class="tag">Bringing a Switch 2</span>' :
+      a.switch2 === "lent" ? '<span class="tag">Borrowing (sorted)</span>' : "";
+  }
   function personRow(a) {
     if (view.aedit === a.id) {
+      var full = O.can("staff");
       return '<li class="editing"><form class="grid2 aeditf" data-id="' + a.id + '">' +
-        '<label class="f">Name<input type="text" name="name" value="' + esc(a.name) + '" required></label>' +
-        '<label class="f">Type<select name="kind"><option value="competitor"' + (a.kind === "competitor" ? " selected" : "") + '>Competitor</option><option value="spectator"' + (a.kind === "spectator" ? " selected" : "") + ">Spectator</option></select></label>" +
-        '<label class="f">Team<input type="text" name="team" value="' + esc(a.team) + '" list="teamnames"></label>' +
-        '<label class="f">Notes<input type="text" name="notes" value="' + esc(a.notes) + '"></label>' +
+        (full ? '<label class="f">Name<input type="text" name="name" value="' + esc(a.name) + '" required></label>' +
+          '<label class="f">Type<select name="kind"><option value="competitor"' + (a.kind === "competitor" ? " selected" : "") + '>Competitor</option><option value="spectator"' + (a.kind === "spectator" ? " selected" : "") + ">Spectator</option></select></label>" +
+          '<label class="f">Team<input type="text" name="team" value="' + esc(a.team) + '" list="teamnames"></label>' : "<b style='grid-column:1/-1'>" + esc(a.name) + "</b>") +
+        '<label class="f">Switch 2' + swSelect(a.switch2) + "</label>" +
+        '<label class="f" style="grid-column:1/-1">Notes<textarea name="notes" rows="3" style="min-height:0;font-family:inherit;font-size:1rem">' + esc(a.notes) + "</textarea></label>" +
         '<div class="bar" style="grid-column:1/-1"><button class="btn primary">Save</button><button type="button" class="btn ghost" data-act="att-cancel">Cancel</button>' +
-        '<button type="button" class="btn danger" data-act="att-del" data-id="' + a.id + '" style="margin-left:auto">Delete</button></div></form></li>';
+        (full ? '<button type="button" class="btn danger" data-act="att-del" data-id="' + a.id + '" style="margin-left:auto">Delete</button>' : "") + "</div></form></li>";
     }
     return '<li class="' + (a.checked_in ? "in" : "") + '"><div class="who"><b>' + esc(a.name) + "</b>" +
       '<div class="meta"><span class="pill ' + (a.kind === "spectator" ? "spec" : "comp") + '">' + KIND[a.kind] + "</span>" +
-      (a.team ? "<span>" + esc(a.team) + "</span>" : "") + (a.notes ? "<span>· " + esc(a.notes) + "</span>" : "") +
-      (a.checked_in ? '<span class="pill done">Checked in ' + esc(timeOf(a.checked_in_at)) + "</span>" : "") + "</div></div>" +
+      (a.source === "walkup" ? '<span class="tag">Walk-up</span>' : "") + (a.team ? "<span>" + esc(a.team) + "</span>" : "") + swBadge(a) +
+      (a.checked_in ? '<span class="pill done">Checked in ' + esc(timeOf(a.checked_in_at)) + "</span>" : "") + "</div>" +
+      (a.notes ? '<div class="small" style="margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere">' + esc(a.notes) + "</div>" : "") + "</div>" +
       '<div class="acts">' + (a.checked_in ? '<button class="btn sm ghost" data-act="att-undo" data-id="' + a.id + '">Undo</button>'
         : '<button class="btn good" data-act="att-in" data-id="' + a.id + '">Check in</button>') +
-      (O.can("staff") ? '<button class="btn sm ghost" data-act="att-edit" data-id="' + a.id + '">Edit</button>' : "") + "</div></li>";
+      '<button class="btn sm ghost" data-act="att-edit" data-id="' + a.id + '">' + (O.can("staff") ? "Edit" : "Notes") + "</button></div></li>";
   }
   function viewDesk() {
     function count(list) { return list.filter(function (a) { return a.checked_in; }).length + " / " + list.length; }
@@ -214,6 +220,8 @@
       '<label class="f" style="flex:2;min-width:10rem">Name<input type="text" name="name" required></label>' +
       '<label class="f">Type<select name="kind"><option value="spectator">Spectator</option><option value="competitor">Competitor</option></select></label>' +
       '<label class="f" style="flex:1;min-width:8rem">Team (competitors)<input type="text" name="team" list="teamnames"></label>' +
+      '<label class="f">Switch 2' + swSelect("") + "</label>" +
+      '<label class="f" style="flex-basis:100%">Notes<textarea name="notes" rows="2" style="min-height:0;font-family:inherit;font-size:1rem" placeholder="Anything worth remembering: paid at the door, came with…, needs a controller…"></textarea></label>' +
       '<button class="btn primary" style="align-self:end">Add &amp; check in</button></form></details></section>';
     var q = view.dq.trim().toLowerCase();
     var list = attendees.filter(function (a) {
@@ -237,26 +245,28 @@
       e.preventDefault();
       var el = wf.elements, nm = el["name"].value.trim(); if (!nm) return;
       O.guard(async function () {
-        var r = await run("ops_attendee_save", { p: { name: nm, kind: el["kind"].value, team: el["team"].value.trim(), notes: "Walk-up", checked_in: true } }, nm + " added and checked in");
+        var r = await run("ops_attendee_save", { p: { name: nm, kind: el["kind"].value, team: el["team"].value.trim(), notes: el["notes"].value.trim(),
+          switch2: el["switch2"].value, source: "walkup", checked_in: true } }, nm + " added and checked in");
         if (r) { attendees.push(r.attendee); wf.reset(); draw(true); }
       });
     };
     main.querySelectorAll("form.aeditf").forEach(function (f) {
       f.onsubmit = async function (e) {
         e.preventDefault();
-        var el = f.elements;
-        var r = await run("ops_attendee_save", { p: { id: f.dataset.id, name: el["name"].value.trim(), kind: el["kind"].value, team: el["team"].value.trim(), notes: el["notes"].value.trim() } }, "Saved");
+        var el = f.elements, body = { id: f.dataset.id, notes: el["notes"].value.trim(), switch2: el["switch2"].value };
+        if (el["name"]) { body.name = el["name"].value.trim(); body.kind = el["kind"].value; body.team = el["team"].value.trim(); }
+        var r = await run("ops_attendee_save", { p: body }, "Saved");
         if (r) { view.aedit = null; await reload(); }
       };
     });
   }
 
   // Attendee list import (Import & setup)
-  var AFIELDS = [["", "Ignore"], ["name", "Name"], ["kind", "Type"], ["team", "Team"], ["contact", "Contact"], ["notes", "Notes"]];
+  var AFIELDS = [["", "Ignore"], ["name", "Name"], ["kind", "Type"], ["team", "Team"], ["switch2", "Switch 2"], ["contact", "Contact"], ["notes", "Notes"]];
   function attGuess(table) {
     var first = table[0] || [], map = first.map(function () { return ""; }), hasHeader = false;
     var tests = [["name", /^(name|full name|attendee|player|gamer ?tag|tag|ign)$/i], ["kind", /type|ticket|role|kind|registration|category/i],
-                 ["team", /team/i], ["contact", /contact|email|discord|phone/i], ["notes", /note|comment/i]];
+                 ["team", /team/i], ["switch2", /switch|console/i], ["contact", /contact|email|discord|phone/i], ["notes", /note|comment/i]];
     first.forEach(function (h, i) { for (var k = 0; k < tests.length; k++) { if (map.indexOf(tests[k][0]) < 0 && tests[k][1].test(h)) { map[i] = tests[k][0]; hasHeader = true; break; } } });
     if (!hasHeader) map[0] = "name";
     return { map: map, hasHeader: hasHeader };
@@ -271,8 +281,8 @@
     if (!attImport) return [];
     var body = attImport.hasHeader ? attImport.table.slice(1) : attImport.table;
     return body.map(function (r) {
-      var o = { name: "", kind: "", team: "", contact: "", notes: "" };
-      attImport.map.forEach(function (f, i) { var v = (r[i] || "").trim(); if (f && v) o[f] = f === "kind" ? normKind(v) : (o[f] ? o[f] + " " + v : v); });
+      var o = { name: "", kind: "", team: "", contact: "", notes: "", switch2: "" };
+      attImport.map.forEach(function (f, i) { var v = (r[i] || "").trim(); if (f && v) o[f] = f === "kind" ? normKind(v) : f === "switch2" ? normSwitch(v) : (o[f] ? o[f] + " " + v : v); });
       if (!o.kind) o.kind = attDefaultKind;
       return o;
     }).filter(function (o) { return o.name; });
@@ -302,37 +312,36 @@
 
   // ---------- Switch 2 view ----------
   function viewSwitch() {
-    var needs = sortTeams(teams.filter(function (t) { return t.switch2 === "needs"; }));
-    var bringing = sortTeams(teams.filter(function (t) { return t.switch2 === "bringing"; }));
-    var lent = sortTeams(teams.filter(function (t) { return t.switch2 === "lent"; }));
-    var unset = sortTeams(teams.filter(function (t) { return !t.switch2; }));
-    function table(list, extra) {
+    var pool = attendees.filter(function (a) { return view.swAll || a.kind === "competitor"; })
+      .sort(function (x, y) { return x.name.localeCompare(y.name, undefined, { sensitivity: "base" }); });
+    function by(k) { return pool.filter(function (a) { return (a.switch2 || "") === k; }); }
+    function rows(list, acts) {
       if (!list.length) return '<p class="empty">None.</p>';
-      return '<div class="tablewrap"><table><thead><tr><th>Team</th><th>Group</th><th>Checked in</th><th>Notes</th>' + (extra ? "<th></th>" : "") + "</tr></thead><tbody>" +
-        list.map(function (t) {
-          return "<tr><td><b>" + esc(t.name) + "</b>" + (t.captain ? '<div class="small muted">' + esc(t.captain) + "</div>" : "") + "</td><td>" + esc(t.grp) + "</td><td>" +
-            (t.status === "checked_in" ? '<span class="pill done">Yes</span>' : t.status === "no_show" ? '<span class="pill late">No-show</span>' : '<span class="pill flag">Not yet</span>') +
-            "</td><td>" + esc(t.notes) + "</td>" + (extra ? "<td>" + extra(t) + "</td>" : "") + "</tr>";
-        }).join("") + "</tbody></table></div>";
+      return '<ul class="people">' + list.map(function (a) {
+        return '<li><div class="who"><b>' + esc(a.name) + '</b><div class="meta"><span class="pill ' + (a.kind === "spectator" ? "spec" : "comp") + '">' + KIND[a.kind] + "</span>" +
+          (a.team ? "<span>" + esc(a.team) + "</span>" : "") + (a.checked_in ? '<span class="pill done">Here</span>' : '<span class="pill flag">Not here yet</span>') + "</div>" +
+          (a.notes ? '<div class="small" style="margin-top:4px;white-space:pre-wrap">' + esc(a.notes) + "</div>" : "") + "</div>" +
+          '<div class="acts">' + acts.map(function (x) { return '<button class="btn sm' + (x[2] ? " " + x[2] : "") + '" data-act="asw-' + x[0] + '" data-id="' + a.id + '">' + x[1] + "</button>"; }).join("") + "</div></li>";
+      }).join("") + "</ul>";
     }
     main.innerHTML =
-      '<div class="notice">From the run of show: some people may not have filled out the form and will ask to borrow a Switch 2. Hold off, but note it here (set “Needs to borrow” on their team).</div>' +
-      '<section class="panel flush"><header><h2>Needs to borrow (' + needs.length + ")</h2></header>" + table(needs, function (t) { return '<button class="btn sm" data-act="sw-lent" data-id="' + t.id + '">Sorted</button>'; }) + "</section>" +
-      '<section class="panel flush"><header><h2>Bringing a Switch 2 (' + bringing.length + ")</h2></header>" + table(bringing) + "</section>" +
-      '<section class="panel flush"><header><h2>Borrowing, sorted (' + lent.length + ")</h2></header>" + table(lent) + "</section>" +
-      '<section class="panel flush"><header><h2>Not set (' + unset.length + ")</h2></header>" + table(unset, function (t) {
-        return '<div class="bar"><button class="btn sm" data-act="sw-bringing" data-id="' + t.id + '">Bringing</button><button class="btn sm" data-act="sw-needs" data-id="' + t.id + '">Needs one</button></div>';
-      }) + "</section>";
+      '<div class="notice">Some people may not have filled out the form and will ask to borrow a Switch 2. Hold off, but note it here (mark them “Needs one”).</div>' +
+      '<div class="chips"><button class="chip" data-swall="0" aria-pressed="' + !view.swAll + '">Competitors</button><button class="chip" data-swall="1" aria-pressed="' + !!view.swAll + '">Everyone</button></div>' +
+      '<section class="panel flush"><header><h2>Needs to borrow (' + by("needs").length + ")</h2></header>" + rows(by("needs"), [["lent", "Sorted", "good"], ["none", "Not needed"]]) + "</section>" +
+      '<section class="panel flush"><header><h2>Bringing a Switch 2 (' + by("bringing").length + ")</h2></header>" + rows(by("bringing"), [["needs", "Actually needs one"]]) + "</section>" +
+      '<section class="panel flush"><header><h2>Borrowing, sorted (' + by("lent").length + ")</h2></header>" + rows(by("lent"), [["needs", "Not sorted"]]) + "</section>" +
+      '<section class="panel flush"><header><h2>Not set (' + by("").length + ")</h2></header>" + rows(by(""), [["bringing", "Bringing"], ["needs", "Needs one"]]) + "</section>";
+    main.querySelectorAll("[data-swall]").forEach(function (b) { b.onclick = function () { view.swAll = b.dataset.swall === "1"; draw(true); }; });
   }
 
   // ---------- import + setup ----------
   var FIELDS = [["", "Ignore"], ["name", "Team name"], ["grp", "Group / wave"], ["captain", "Captain"], ["contact", "Contact"],
-                ["players", "Player(s)"], ["switch2", "Switch 2"], ["paid", "Paid"], ["notes", "Notes"]];
+                ["players", "Player(s)"], ["paid", "Paid"], ["notes", "Notes"]];
   function guessMap(table) {
     var first = table[0] || [], map = first.map(function () { return ""; }), hasHeader = false;
     var tests = [["name", /^(team|team name|name|entrant)$/i], ["grp", /group|wave|pool|bracket|division/i], ["captain", /captain|cap\b/i],
                  ["contact", /contact|discord|phone|email|handle/i], ["players", /player|member|roster|ign|gamertag|tag/i],
-                 ["switch2", /switch|console/i], ["paid", /paid|payment|fee/i], ["notes", /note|comment/i]];
+                 ["paid", /paid|payment|fee/i], ["notes", /note|comment/i]];
     first.forEach(function (h, i) {
       for (var k = 0; k < tests.length; k++) {
         var f = tests[k][0];
@@ -371,8 +380,8 @@
     return Object.keys(byName).map(function (k) { return byName[k]; });
   }
   function previewTable(list) {
-    return '<div class="tablewrap"><table class="prevtable"><thead><tr><th>Team</th><th>Group</th><th>Players</th><th>Switch 2</th></tr></thead><tbody>' +
-      list.slice(0, 8).map(function (t) { return "<tr><td>" + esc(t.name) + "</td><td>" + esc(t.grp || "") + "</td><td>" + esc((t.players || []).join(", ")) + "</td><td>" + esc(SW[t.switch2 || ""] || "") + "</td></tr>"; }).join("") +
+    return '<div class="tablewrap"><table class="prevtable"><thead><tr><th>Team</th><th>Group</th><th>Players</th></tr></thead><tbody>' +
+      list.slice(0, 8).map(function (t) { return "<tr><td>" + esc(t.name) + "</td><td>" + esc(t.grp || "") + "</td><td>" + esc((t.players || []).join(", ")) + "</td></tr>"; }).join("") +
       "</tbody></table></div>" + (list.length > 8 ? '<p class="small muted">…and ' + (list.length - 8) + " more.</p>" : "");
   }
   function viewSetup() {
@@ -441,12 +450,12 @@
     } catch (err) { O.toast("Couldn’t fetch from start.gg: " + err.message); }
   }
   function exportCsv() {
-    var lines = [["Team", "Group", "Status", "Checked in at", "Players here", "Players", "Captain", "Contact", "Switch 2", "Paid", "Notes"]];
+    var lines = [["Team", "Group", "Status", "Checked in at", "Players here", "Players", "Captain", "Contact", "Paid", "Notes"]];
     sortTeams(teams).forEach(function (t) {
       var tp = teamPlayers(t);
       lines.push([t.name, t.grp, t.status, t.checked_in_at ? new Date(t.checked_in_at).toLocaleTimeString() : "",
         tp.filter(function (p) { return p.present; }).length + "/" + tp.length, tp.map(function (p) { return p.name + (p.present ? " ✓" : ""); }).join(", "),
-        t.captain, t.contact, SW[t.switch2 || ""], t.paid ? "yes" : "", t.notes]);
+        t.captain, t.contact, t.paid ? "yes" : "", t.notes]);
     });
     var csv = lines.map(function (l) { return l.map(function (c) { c = String(c == null ? "" : c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\n");
     var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "check-in.csv"; a.click();
@@ -461,6 +470,9 @@
     if (act === "att-in") attCheck(a, true);
     else if (act === "att-undo") attCheck(a, false);
     else if (act === "att-edit") O.guard(function () { view.aedit = a.id; draw(true); });
+    else if (act === "asw-lent" || act === "asw-bringing" || act === "asw-needs" || act === "asw-none") O.guard(async function () {
+      a.switch2 = act.slice(4); draw(true); await run("ops_attendee_save", { p: { id: a.id, switch2: a.switch2 } });
+    });
     else if (act === "att-cancel") { view.aedit = null; draw(true); }
     else if (act === "att-del") O.guard(async function () {
       if (!confirm("Delete " + a.name + " from the attendee list?")) return;
@@ -486,8 +498,8 @@
       await run("ops_attendees_reset", { p_mode: "everything" }, "Attendee list deleted"); await reload();
     });
     else if (act === "att-export") {
-      var lines = [["Name", "Type", "Team", "Checked in", "Time", "Contact", "Notes"]].concat(attendees.slice().sort(function (x, y) { return x.name.localeCompare(y.name); }).map(function (p) {
-        return [p.name, KIND[p.kind], p.team, p.checked_in ? "yes" : "", p.checked_in_at ? new Date(p.checked_in_at).toLocaleTimeString() : "", p.contact, p.notes];
+      var lines = [["Name", "Type", "Team", "Checked in", "Time", "Switch 2", "Walk-up", "Contact", "Notes"]].concat(attendees.slice().sort(function (x, y) { return x.name.localeCompare(y.name); }).map(function (p) {
+        return [p.name, KIND[p.kind], p.team, p.checked_in ? "yes" : "", p.checked_in_at ? new Date(p.checked_in_at).toLocaleTimeString() : "", SW[p.switch2 || ""], p.source === "walkup" ? "yes" : "", p.contact, p.notes];
       }));
       var csv = lines.map(function (l) { return l.map(function (c) { c = String(c == null ? "" : c); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(","); }).join("\n");
       var dl = document.createElement("a"); dl.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); dl.download = "attendees.csv"; dl.click();
@@ -514,9 +526,6 @@
       var inp = b.closest(".prow").querySelector("input"), name = inp.value.trim(); if (!name) return;
       var r = await run("ops_player_save", { p_player: { team_id: id, name: name } });
       if (r) { players.push(r.player); inp.value = ""; draw(true); }
-    });
-    else if (act === "sw-lent" || act === "sw-bringing" || act === "sw-needs") O.guard(async function () {
-      t.switch2 = act.slice(3); draw(true); await run("ops_team_save", { p_team: { id: t.id, switch2: t.switch2 } });
     });
     else if (act === "unlock") O.askPin();
     else if (act === "imp-merge") O.guard(function () { doImport(importTeams(), "merge", "sheet"); });
