@@ -219,7 +219,7 @@
       '<button class="btn sm" id="fo" aria-pressed="' + view.needsOwner + '">' + (view.needsOwner ? "Showing needs owner" : "Needs an owner (" + needs + ")") + "</button>" +
       "</div></section>";
 
-    html += '<section class="panel flush"><header><h2>Add a block</h2></header><form class="addrow" id="addf">' +
+    html += '<section class="panel flush"><header><h2>Add a block</h2></header><form class="addrow" id="addf" data-draft>' +
       '<label class="f">Start<input type="time" name="start"></label><label class="f">End<input type="time" name="end"></label>' +
       '<label class="f">When<select name="section"><option value="day">Event day</option><option value="before">Before the day</option><option value="after">After the event</option></select></label>' +
       '<label class="f task-in">Task<input type="text" name="task" placeholder="What needs doing" required></label>' +
@@ -258,7 +258,7 @@
       O.guard(async function () {
         var row = await addRow(fields);
         if (!row) return;
-        f.reset();
+        var cur = $("addf"); if (cur) cur.reset();      // the form may have been redrawn while saving
         // Make sure the new block is visible, then point at it
         view.q = ""; view.person = ""; view.category = ""; view.needsOwner = false; view.hideDone = false;
         draw(true);
@@ -376,7 +376,7 @@
     var html = "";
     if (!O.unlocked()) html += '<div class="notice">Enter the staff PIN to use these tools. <button class="btn sm" data-act="unlock">Enter PIN</button></div>';
     html += '<section class="panel"><h2>Running late?</h2><p class="small muted">Moves every unfinished block on the event day that starts at or after this time. Use a negative number to pull blocks earlier.</p>' +
-      '<form class="bar" id="shiftf"><label class="f">From<input type="time" name="from" value="' + O.toTimeInput(n) + '"></label>' +
+      '<form class="bar" id="shiftf" data-draft><label class="f">From<input type="time" name="from" value="' + O.toTimeInput(n) + '"></label>' +
       '<label class="f">Minutes<input type="number" name="delta" value="10" step="5" style="width:6rem"></label>' +
       '<button class="btn primary" style="align-self:end">Shift blocks</button></form></section>';
 
@@ -409,7 +409,7 @@
         '<p class="small muted">One PIN per level, used for the run of show and check-in. Volunteers can check teams in and see their own shifts. Staff can do everything except deleting, resetting and changing PINs.</p>' +
         '<div id="pinstatus" class="small muted" style="margin-bottom:8px"></div>' +
         [["volunteer", "Volunteer PIN"], ["staff", "Staff PIN"], ["owner", "Owner PIN"]].map(function (x) {
-          return '<form class="bar pinf" data-role="' + x[0] + '" style="margin-bottom:8px"><label class="f" style="flex:1;min-width:12rem">' + x[1] +
+          return '<form class="bar pinf" id="pinf-' + x[0] + '" data-draft data-role="' + x[0] + '" style="margin-bottom:8px"><label class="f" style="flex:1;min-width:12rem">' + x[1] +
             '<input type="password" name="pin" inputmode="numeric" placeholder="New ' + x[1].toLowerCase() + '" autocomplete="new-password"></label>' +
             '<button class="btn" style="align-self:end">Set</button>' + (x[0] !== "owner" ? '<button type="button" class="btn ghost" data-act="pin-off" data-role="' + x[0] + '" style="align-self:end">Turn off</button>' : "") + "</form>";
         }).join("") + "</section>";
@@ -433,7 +433,7 @@
       var from = O.parseTime(e.target.elements["from"].value), delta = parseInt(e.target.elements["delta"].value, 10);
       if (from == null || !delta) return;
       O.guard(async function () {
-        try { var r = await O.rpc("ops_ros_shift", { p_from: from, p_delta: delta }); O.toast("Moved " + r.count + " blocks by " + delta + " min"); await reload(); }
+        try { var r = await O.rpc("ops_ros_shift", { p_from: from, p_delta: delta }); O.toast("Moved " + r.count + " blocks by " + delta + " min"); e.target.reset(); await reload(); draw(true); }
         catch (err) { O.toast(err.message); }
       });
     };
