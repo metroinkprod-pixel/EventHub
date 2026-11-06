@@ -42,9 +42,9 @@ window.HUB = {
       links: [{ text: "Schedule", href: "/schedule/" }, { text: "Map list", href: "/maps/" }, { text: "Station board", href: "/stations/" }] },
     { title: "Organized Pickup Games", text: "Organize a pickup scrim on an open station. Check in, get paired and matched up with others.", links: [{ text: "Check in", href: "/matchmaker/" }] },
     { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
-    { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
-    { title: "Art Show", text: "Check out the art on display throughout the venue." },
-    { title: "Merch Desk", text: "Shirts, stickers and more past the stage area." }
+    { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk. Predict Top 8 match outcomes accurately to win $50!" },
+    { title: "Art Show", text: "Check out the art on display throughout the venue!" },
+    { title: "Merch Desk", text: "Posters, Light stands, stickers and more past the stage area!" }
   ],
 
   // Social / link buttons on the hub, schedule and map list. Leave a link "" to hide it.
