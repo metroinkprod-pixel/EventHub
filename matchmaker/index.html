@@ -828,6 +828,40 @@ tr.me td { background: var(--a-soft); }
   window.addEventListener('ops-lock-change', sync);
 })();
 </script>
+<script src="/shared/scrims.js"></script>
+<script>
+// Hub: opening hours ("scrims" in site-config.js). While closed, players see when it opens;
+// the staff view (#staff) keeps working so staff can set up.
+(function () {
+  if (!window.HubScrims || !HubScrims.configured) return;
+  var css = document.createElement('style');
+  css.textContent = 'html.scrims-closed #main, html.scrims-closed nav.tabs { display: none; }' +
+    '.scrims-shut { display: none; max-width: 560px; margin: 28px auto; padding: 32px 20px; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--t-radius); }' +
+    'html.scrims-closed .scrims-shut { display: block; }' +
+    '.scrims-shut .k { display: inline-block; font-size: .75rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: var(--t-radius-sm); padding: 3px 10px; }' +
+    '.scrims-shut h2 { margin: 14px 0 6px; font-size: 2rem; color: var(--t-highlight); }' +
+    '.scrims-shut p { margin: 0; color: var(--muted); }';
+  document.head.appendChild(css);
+  var box = document.createElement('section');
+  box.className = 'scrims-shut';
+  box.setAttribute('aria-live', 'polite');
+  var main = document.getElementById('main');
+  main.parentNode.insertBefore(box, main);
+  function sync() {
+    var st = HubScrims.status(), staffView = location.hash === '#staff';
+    document.documentElement.classList.toggle('scrims-closed', !st.open && !staffView);
+    if (!st.open) {
+      box.innerHTML = '<span class="k">' + (st.over ? 'Closed' : 'Not open yet') + '</span><h2></h2><p></p>';
+      box.querySelector('h2').textContent = st.label;
+      box.querySelector('p').textContent = HubScrims.closedText ||
+        (st.over ? 'Thanks for playing!' : HubScrims.name + ' opens then. Check back, or see the schedule for what’s on now.');
+    }
+  }
+  sync();
+  setInterval(sync, 20000);
+  window.addEventListener('hashchange', sync);
+})();
+</script>
 <script src="/nav.js"></script>
 <script src="/shared/onstream.js"></script>
 </body>
