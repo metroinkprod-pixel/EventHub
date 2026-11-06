@@ -28,6 +28,7 @@
     if (n && n.length) return n.slice().sort(function (a, b) { return a - b; });
     var out = []; for (var i = 1; i <= (S.settings.stations || 1); i++) out.push(i); return out;
   }
+  function paused(i) { return (S.settings.paused || []).indexOf(i) >= 0; }
   function player(id) { return S.players.find(function (p) { return p.id === id; }); }
   function mine() { return me && player(me.id); }
   function live() { return S.matches.filter(function (m) { return m.status === "active" || m.status === "waiting"; }); }
@@ -118,7 +119,7 @@
   }
   function freeSpots() {
     var n = 0, s = S.settings;
-    var ns = nums();
+    var ns = nums().filter(function (i) { return !paused(i); });
     live().forEach(function (m) { if (m.status === "waiting" && ns.indexOf(m.station) >= 0) n += s.team_size; });
     ns.forEach(function (i) { if (!live().some(function (m) { return m.station === i; })) n += s.team_size * 2; });
     return n;
@@ -160,11 +161,14 @@
     nums().forEach(function (i) {
       var m = live().find(function (x) { return x.station === i; });
       html += '<article class="panel st"><header><h3>' + esc(L()) + " " + i + "</h3>" +
-        (!m ? '<span class="pill skip">Open</span>' : m.status === "active" ? '<span class="pill live">Playing</span>' : '<span class="pill flag">Waiting for challengers</span>') + "</header>";
-      if (!m) html += '<p class="lead">Starts when ' + s.team_size * 2 + " players are in line.</p>";
+        (paused(i) && !m ? '<span class="pill late">Paused</span>' : !m ? '<span class="pill skip">Open</span>' : m.status === "active" ? '<span class="pill live">Playing</span>' : '<span class="pill flag">Waiting for challengers</span>') + "</header>";
+      if (!m) html += '<p class="lead">' + (paused(i) ? "Paused by staff. Games start again when it’s resumed." : "Starts when " + s.team_size * 2 + " players are in line.") + "</p>";
       else if (m.status === "active") html += '<div class="teams">' + teamHtml(m.a_name, m.a_players, m.a_names, { streak: m.a_streak }) + '<span class="vs">VS</span>' + teamHtml(m.b_name, m.b_players, m.b_names) + "</div>";
       else html += teamHtml(m.a_name, m.a_players, m.a_names, { streak: m.a_streak });
       if (staff && m) html += staffMatchHtml(m);
+      if (staff) html += '<div class="bar">' + (paused(i)
+        ? '<button class="btn sm primary" data-act="s-pause" data-st="' + i + '" data-p="0">Resume ' + esc(L().toLowerCase()) + " " + i + "</button><span class='small muted'>New games start automatically again.</span>"
+        : '<button class="btn sm ghost" data-act="s-pause" data-st="' + i + '" data-p="1">Pause ' + esc(L().toLowerCase()) + " " + i + "</button><span class='small muted'>Lets the current match finish; no new ones start.</span>") + "</div>";
       html += "</article>";
     });
     html += "</section>";
@@ -208,8 +212,10 @@
         return '<option value="' + p.id + '">' + esc(p.name) + (p.status === "away" ? " (on a break)" : " (in line)") + "</option>"; }).join("") + "</select></label>" +
       '<label class="f">Then they go<select name="to"><option value="away">On a break</option><option value="queue">Back in line</option></select></label>' +
       '<button class="btn sm" style="align-self:end">Swap</button></form>';
-    return '<div class="bar" style="border-top:1px dashed var(--line);padding-top:10px">' + btns +
-      '<button class="btn sm danger" data-act="s-cancel" data-id="' + m.id + '">' + (m.status === "active" ? "Cancel match" : "Break up team") + "</button>" + swap + "</div>";
+    var cancel = '<form class="bar cancelf" data-id="' + m.id + '" style="width:100%"><label class="f">Players go<select name="to"><option value="queue">To the front of the line</option><option value="away">On a break</option></select></label>' +
+      '<button class="btn sm danger" style="align-self:end">' + (m.status === "active" ? "Cancel match" : "Break up team") + "</button>" +
+      '<span class="small muted" style="align-self:end">The ' + esc(L().toLowerCase()) + " is paused until you resume it.</span></form>";
+    return '<div class="bar" style="border-top:1px dashed var(--line);padding-top:10px">' + btns + cancel + swap + "</div>";
   }
   function viewStaff() {
     if (!O.can("staff")) return O.unlocked() ? O.noAccessHtml("Staff controls need a staff or owner PIN.") : O.lockedHtml("the pickup games controls");
@@ -279,6 +285,13 @@
       var d = await call("pug_staff_add", staffArgs({ p_name: nm, p_weapon: el["weapon"].value.trim(), p_status: el["status"].value }), nm + " added.");
       if (d) { view.added = { id: d.id, token: d.token, name: nm }; draw(true); }
     };
+    main.querySelectorAll("form.cancelf").forEach(function (f) {
+      f.onsubmit = function (e) {
+        e.preventDefault();
+        if (!confirm("Cancel this? The " + L().toLowerCase() + " is paused so nothing new starts until you press Resume.")) return;
+        call("pug_staff_cancel", staffArgs({ p_match: f.dataset.id, p_to: f.elements["to"].value }), "Cancelled. " + L() + " paused.");
+      };
+    });
     main.querySelectorAll("form.swapf").forEach(function (f) {
       f.onsubmit = function (e) {
         e.preventDefault();
@@ -327,7 +340,7 @@
     // staff
     if (act === "s-result") { var m = S.matches.find(function (x) { return x.id === b.dataset.id; }); if (!confirm("Record " + (b.dataset.w === "a" ? m.a_name : m.b_name) + " winning " + need() + "–" + b.dataset.l + "?")) return;
       return call("pug_staff_result", staffArgs({ p_match: b.dataset.id, p_winner: b.dataset.w, p_w: need(), p_l: +b.dataset.l }), "Result recorded."); }
-    if (act === "s-cancel") { if (!confirm("Cancel? Everyone in it goes to the front of the line.")) return; return call("pug_staff_cancel", staffArgs({ p_match: b.dataset.id }), "Cancelled."); }
+    if (act === "s-pause") return call("pug_staff_pause", staffArgs({ p_station: +b.dataset.st, p_paused: b.dataset.p === "1" }), b.dataset.p === "1" ? "Paused." : "Resumed.");
     if (act === "s-player") {
       var p = player(b.dataset.id);
       if (b.dataset.a === "remove" && !confirm("Remove " + (p ? p.name : "this player") + "? Their name and stats are deleted.")) return;
