@@ -1,5 +1,5 @@
 // Opening hours for the scrims page (matchmaker).
-// Staff set them in the scrims page: Staff > Settings > Opening hours (saved in the matchmaker's database).
+// Staff set them on the pickup games page: Staff > Settings (saved in the run-of-show database).
 // site-config.js  scrims: { name, opens, closes, date, closedText }  is the fallback if none are saved there.
 // Used by the hub card and the scrims page. Times are the device's local time.
 (function () {
@@ -47,18 +47,16 @@
       if (closes != null && now >= closes) return { open: false, label: "Closed for today", short: "Closed", over: true };
       return { open: true, label: closes != null ? "Open until " + fmt(closes) : "Open now", short: "Open now" };
     },
-    // Hub page: read the saved hours straight from the matchmaker's database (public, read-only).
-    loadFromMatchmaker: function () {
-      function go() {
-        var c = window.TM_CONFIG;
-        if (!c || !c.SUPABASE_URL || /YOUR-/.test(c.SUPABASE_URL)) return;
-        fetch(c.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/settings?id=eq.1&select=*", { headers: { apikey: c.SUPABASE_ANON_KEY, Authorization: "Bearer " + c.SUPABASE_ANON_KEY } })
-          .then(function (r) { return r.ok ? r.json() : null; })
-          .then(function (rows) { if (rows && rows[0]) S.setFromSettings(rows[0]); })
-          .catch(function () {});
-      }
-      if (window.TM_CONFIG) return go();
-      var s = document.createElement("script"); s.src = "/matchmaker/config.js"; s.onload = go; document.head.appendChild(s);
+    // Hub page: read the saved hours (public, read-only) from the pickup games settings.
+    load: function () {
+      var c = (window.HUB && window.HUB.ops) || {};
+      if (!c.SUPABASE_URL || /YOUR-/.test(c.SUPABASE_URL)) return;
+      fetch(c.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/pug_settings?id=eq.1&select=*", { headers: { apikey: c.SUPABASE_ANON_KEY, Authorization: "Bearer " + c.SUPABASE_ANON_KEY } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (rows) { if (rows && rows[0]) S.setFromSettings(rows[0]); })
+        .catch(function () {});
     }
   };
 })();
+
+window.HubScrims.loadFromMatchmaker = window.HubScrims.load;   // older hub pages
