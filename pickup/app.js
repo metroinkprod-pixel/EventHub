@@ -166,9 +166,9 @@
       else if (m.status === "active") html += '<div class="teams">' + teamHtml(m.a_name, m.a_players, m.a_names, { streak: m.a_streak }) + '<span class="vs">VS</span>' + teamHtml(m.b_name, m.b_players, m.b_names) + "</div>";
       else html += teamHtml(m.a_name, m.a_players, m.a_names, { streak: m.a_streak });
       if (staff && m) html += staffMatchHtml(m);
-      if (staff) html += '<div class="bar">' + (paused(i)
+      if (staff) html += '<div class="ctl"><b>' + esc(L()) + "</b><div class=\"bar\">" + (paused(i)
         ? '<button class="btn sm primary" data-act="s-pause" data-st="' + i + '" data-p="0">Resume ' + esc(L().toLowerCase()) + " " + i + "</button><span class='small muted'>New games start automatically again.</span>"
-        : '<button class="btn sm ghost" data-act="s-pause" data-st="' + i + '" data-p="1">Pause ' + esc(L().toLowerCase()) + " " + i + "</button><span class='small muted'>Lets the current match finish; no new ones start.</span>") + "</div>";
+        : '<button class="btn sm ghost" data-act="s-pause" data-st="' + i + '" data-p="1">Pause ' + esc(L().toLowerCase()) + " " + i + "</button><span class='small muted'>Lets the current match finish; no new ones start.</span>") + "</div></div>";
       html += "</article>";
     });
     html += "</section>";
@@ -215,7 +215,9 @@
     var cancel = '<form class="bar cancelf" data-id="' + m.id + '" style="width:100%"><label class="f">Players go<select name="to"><option value="queue">To the front of the line</option><option value="away">On a break</option></select></label>' +
       '<button class="btn sm danger" style="align-self:end">' + (m.status === "active" ? "Cancel match" : "Break up team") + "</button>" +
       '<span class="small muted" style="align-self:end">The ' + esc(L().toLowerCase()) + " is paused until you resume it.</span></form>";
-    return '<div class="bar" style="border-top:1px dashed var(--line);padding-top:10px">' + btns + cancel + swap + "</div>";
+    return (btns ? '<div class="ctl"><b>Record result</b><div class="bar">' + btns + "</div></div>" : "") +
+      '<div class="ctl"><b>Swap a player</b>' + swap + "</div>" +
+      '<div class="ctl"><b>Cancel</b>' + cancel + "</div>";
   }
   function viewStaff() {
     if (!O.can("staff")) return O.unlocked() ? O.noAccessHtml("Staff controls need a staff or owner PIN.") : O.lockedHtml("the pickup games controls");
