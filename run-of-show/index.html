@@ -51,6 +51,8 @@ li.editing { display: block !important; background: var(--live-bg); }
 .floor figure { margin: 0; display: grid; gap: 8px; }
 .floor img { width: 100%; height: auto; display: block; border-radius: var(--t-radius); border: 1px solid var(--line); background: var(--surface); }
 .floor figcaption { font-weight: 700; }
+.floor .sheetwrap { border: 1px solid var(--line); border-radius: var(--t-radius); overflow: hidden; background: #fff; }
+.floor iframe { display: block; width: 100%; height: min(75vh, 900px); border: 0; }
 @media (max-width: 700px) {
   .list > li { grid-template-columns: auto 1fr auto; }
   .list .time { grid-column: 2; }
