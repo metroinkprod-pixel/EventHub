@@ -42,7 +42,9 @@
     in_match: "You’re in a match right now. Finish it first.",
     already_reported: "Someone already reported this match.", bad_score: "That score doesn’t fit the format.",
     bad_token: "This phone isn’t linked to that player anymore.", not_in_match: "You’re not in this match.",
-    forbidden: "Your PIN can’t do that.", bad_time: "Times should look like 17:00.", bad_date: "Pick a date or leave it empty."
+    forbidden: "Your PIN can’t do that.",
+    no_sub: "Nobody’s in line to take your spot yet. Finish this game, or ask a staff member.",
+    line_empty: "Nobody’s in line. Pick a player to write in.", not_available: "That player is already playing.", bad_time: "Times should look like 17:00.", bad_date: "Pick a date or leave it empty."
   };
   async function call(fn, args, ok) {
     if (busy) return null;
@@ -82,14 +84,15 @@
       var side = m.a_players.indexOf(p.id) >= 0 ? "a" : "b";
       html += '<section class="panel me"><span class="pill live" style="justify-self:start">You’re up</span><h2>Go to ' + esc(L()) + " " + m.station + "</h2>" +
         '<div class="teams">' + teamHtml(m.a_name, m.a_players, m.a_names, { mine: side === "a", streak: m.a_streak }) + '<span class="vs">VS</span>' +
-        teamHtml(m.b_name, m.b_players, m.b_names, { mine: side === "b" }) + "</div>" + reportHtml(m) + "</section>";
+        teamHtml(m.b_name, m.b_players, m.b_names, { mine: side === "b" }) + "</div>" + reportHtml(m) +
+        '<div class="bar"><button class="btn ghost sm" data-act="sub-out">I have to leave</button><span class="small muted">The next person in line takes your spot.</span></div></section>';
     } else if (m && m.status === "waiting") {
       var more = Math.max(0, S.settings.team_size - line().length);
       html += '<section class="panel me"><span class="pill done" style="justify-self:start">You won · ' + m.a_streak + (m.a_streak === 1 ? " win" : " wins in a row") + "</span>" +
         "<h2>Stay at " + esc(L()) + " " + m.station + "</h2>" +
         '<p class="lead">Waiting for challengers' + (more ? ": " + more + " more player" + (more === 1 ? "" : "s") + " needed in line." : ". They’re on the way.") + "</p>" +
         teamHtml(m.a_name, m.a_players, m.a_names, { mine: true, streak: m.a_streak }) +
-        '<div class="bar"><button class="btn ghost" data-act="break">Leave the station</button></div><p class="small muted" style="margin:0">Leaving breaks up your team; your teammates go to the front of the line.</p></section>';
+        '<div class="bar"><button class="btn ghost" data-act="break">Leave the station</button></div><p class="small muted" style="margin:0">If you leave, the next person in line takes your spot and your team keeps its streak.</p></section>';
     } else if (p.status === "queue") {
       var ln = line(), pos = ln.findIndex(function (x) { return x.id === p.id; }) + 1;
       var free = freeSpots();
@@ -186,8 +189,17 @@
         btns += '<button class="btn sm" data-act="s-result" data-id="' + m.id + '" data-w="b" data-l="' + l + '">' + esc(m.b_name) + " " + n + "–" + l + "</button>";
       }
     }
+    var inMatch = m.a_players.concat(m.b_players).map(function (id) { return player(id); }).filter(Boolean);
+    var avail = S.players.filter(function (p) { return p.status === "queue" || p.status === "away"; })
+      .sort(function (a, b) { return (a.status === b.status ? 0 : a.status === "queue" ? -1 : 1) || new Date(a.queued_at) - new Date(b.queued_at); });
+    var swap = '<form class="bar swapf" data-id="' + m.id + '" style="width:100%">' +
+      '<label class="f">Take out<select name="out">' + inMatch.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + "</option>"; }).join("") + "</select></label>" +
+      '<label class="f">Put in<select name="in"><option value="">Next in line</option>' + avail.map(function (p) {
+        return '<option value="' + p.id + '">' + esc(p.name) + (p.status === "away" ? " (on a break)" : " (in line)") + "</option>"; }).join("") + "</select></label>" +
+      '<label class="f">Then they go<select name="to"><option value="away">On a break</option><option value="queue">Back in line</option></select></label>' +
+      '<button class="btn sm" style="align-self:end">Swap</button></form>';
     return '<div class="bar" style="border-top:1px dashed var(--line);padding-top:10px">' + btns +
-      '<button class="btn sm danger" data-act="s-cancel" data-id="' + m.id + '">' + (m.status === "active" ? "Cancel match" : "Break up team") + "</button></div>";
+      '<button class="btn sm danger" data-act="s-cancel" data-id="' + m.id + '">' + (m.status === "active" ? "Cancel match" : "Break up team") + "</button>" + swap + "</div>";
   }
   function viewStaff() {
     if (!O.can("staff")) return O.unlocked() ? O.noAccessHtml("Staff controls need a staff or owner PIN.") : O.lockedHtml("the pickup games controls");
@@ -241,6 +253,13 @@
       var d = await call("pug_join", { p_name: nm, p_weapon: wp }, "You’re in line!");
       if (d) { me = { id: d.id, token: d.token }; try { localStorage.setItem(ME_KEY, JSON.stringify(me)); } catch (x) {} draw(true); }
     };
+    main.querySelectorAll("form.swapf").forEach(function (f) {
+      f.onsubmit = function (e) {
+        e.preventDefault();
+        var el = f.elements;
+        call("pug_staff_swap", staffArgs({ p_match: f.dataset.id, p_out: el["out"].value, p_in: el["in"].value || null, p_out_to: el["to"].value }), "Swapped.");
+      };
+    });
     var sf = $("setf");
     if (sf) sf.onsubmit = function (e) {
       e.preventDefault();
@@ -264,7 +283,10 @@
     }
     if (act === "away") return call("pug_set", { p_player: me.id, p_token: me.token, p_status: "away" }, "Enjoy your break.");
     if (act === "rejoin") return call("pug_set", { p_player: me.id, p_token: me.token, p_status: "queue" }, "You’re back in line.");
-    if (act === "break") { if (!confirm("Leave the station? Your teammates go back to the front of the line.")) return; return call("pug_set", { p_player: me.id, p_token: me.token, p_status: "away" }, "You left the station."); }
+    if (act === "break" || act === "sub-out") {
+      if (!confirm("Leave your team? The next person in line takes your spot, and you go on a break.")) return;
+      return call("pug_set", { p_player: me.id, p_token: me.token, p_status: "away" }, "You’re out. Someone from the line took your spot.");
+    }
     if (act === "weapon") {
       var w = prompt("What weapon will you play?", (mine() || {}).weapon || ""); if (w == null) return;
       return call("pug_set", { p_player: me.id, p_token: me.token, p_status: null, p_weapon: w }, "Weapon updated.");
