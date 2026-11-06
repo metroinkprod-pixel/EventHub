@@ -5,16 +5,17 @@
 // that PIN's level can use (volunteers: My shifts + Check-in).
 (function () {
   if (document.documentElement.dataset.hubnav === "off") return;
+  var SCRIMS = (window.HUB && HUB.scrims && HUB.scrims.name) || "Free play";
   var LINKS = [
     { href: "/",             label: "Hub" },
     { href: "/schedule/",    label: "Schedule" },
     { href: "/maps/",        label: "Maps" },
     { href: "/stations/",    label: "Stations" },
-    { href: "/matchmaker/",  label: "Free play" },
+    { href: "/matchmaker/",  label: SCRIMS },
     { href: "/run-of-show/", label: "Run of show", staff: "staff" },
     { href: "/run-of-show/?view=mine", label: "My shifts", staff: "volunteer" },
     { href: "/checkin/",     label: "Check-in", staff: "volunteer" },
-    { href: "/matchmaker/#staff", label: "Free play staff", staff: "staff" }
+    { href: "/matchmaker/#staff", label: SCRIMS + " staff", staff: "staff" }
   ];
   var RANK = { volunteer: 1, staff: 2, owner: 3 }, NAMES = { volunteer: "Volunteer", staff: "Staff", owner: "Owner" };
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
