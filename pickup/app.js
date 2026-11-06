@@ -69,6 +69,7 @@
       }
       if (ok) O.toast(ok);
       await load();
+      draw(true);               // saved: show the new state even if a form was being edited
       return r.data;
     } catch (e) { O.toast(e.message); return null; }
     finally { busy = false; }
@@ -85,7 +86,7 @@
     }
     if (!p) {
       return '<section class="panel me"><h2>Jump in</h2><p class="lead">Enter your name and weapon. You’ll be put on a random team when it’s your turn.</p>' +
-        '<form class="form" id="joinf"><div class="row2"><label class="f">Your name<input type="text" name="name" maxlength="30" autocomplete="nickname" required></label>' +
+        '<form class="form" id="joinf" data-draft><div class="row2"><label class="f">Your name<input type="text" name="name" maxlength="30" autocomplete="nickname" required></label>' +
         '<label class="f">Weapon you’ll play<input type="text" name="weapon" maxlength="40" list="weapons" placeholder="e.g. Splattershot"></label></div>' +
         '<button class="btn primary" style="justify-self:start">Get in line</button></form></section>' + howHtml();
     }
@@ -224,14 +225,14 @@
     var s = S.settings;
     var link = view.added ? location.origin + "/pickup/#link=" + view.added.id + "." + view.added.token : "";
     var html = '<section class="panel"><h2 style="margin-bottom:6px">Add a player</h2><p class="lead" style="margin-bottom:10px">For people without a phone, or to write someone in. They join the line; use <b>Swap</b> under a ' + esc(L().toLowerCase()) + " to put them straight onto a team.</p>" +
-      '<form class="bar" id="addf"><label class="f" style="flex:1;min-width:10rem">Name<input type="text" name="name" maxlength="30" required></label>' +
+      '<form class="bar" id="addf" data-draft><label class="f" style="flex:1;min-width:10rem">Name<input type="text" name="name" maxlength="30" required></label>' +
       '<label class="f" style="flex:1;min-width:10rem">Weapon<input type="text" name="weapon" maxlength="40" list="weapons"></label>' +
       '<label class="f">Add them<select name="status"><option value="queue">To the line</option><option value="away">On a break (not playing yet)</option></select></label>' +
       '<button class="btn primary" style="align-self:end">Add player</button></form>' +
       (view.added ? '<p class="small" style="margin:10px 0 0">Added <b>' + esc(view.added.name) + '</b>. To give them the page on their own phone later, send them this link: ' +
         '<a href="' + esc(link) + '" style="color:var(--t-accent);overflow-wrap:anywhere">' + esc(link) + '</a> <button class="btn sm" data-act="copy-link" data-v="' + esc(link) + '">Copy</button></p>' : "") + "</section>" +
       '<section class="panel"><h2 style="margin-bottom:6px">Settings</h2><p class="lead" style="margin-bottom:10px">Changes apply right away. The page runs itself; use the controls under each ' + esc(L().toLowerCase()) + " only if something goes wrong.</p>" +
-      '<form class="grid2" id="setf">' +
+      '<form class="grid2" id="setf" data-draft>' +
       '<label class="f">' + esc(L()) + ' numbers to use<input type="text" name="station_numbers" inputmode="numeric" placeholder="e.g. 2  or  1, 3, 4" value="' + esc(nums().join(", ")) + '"></label>' +
       '<label class="f">Call them<select name="station_label">' + ["Station", "Setup", "Court", "Table"].map(function (x) { return "<option" + (x === s.station_label ? " selected" : "") + ">" + x + "</option>"; }).join("") + "</select></label>" +
       '<label class="f">Players per team<input type="number" name="team_size" min="1" max="8" value="' + s.team_size + '"></label>' +
