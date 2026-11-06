@@ -6,7 +6,7 @@
   var main = $("main");
   var NAME = (H.scrims && H.scrims.name) || "Pickup Games";
   var ME_KEY = "pug-me";
-  var COLORS = { Orange: "#ff7a1a", Blue: "#3b82f6", Pink: "#ff4fa3", Green: "#3ccf6e", Purple: "#9b5cff", Yellow: "#ffd400", Turquoise: "#20d6c7", Red: "#ff4d4d" };
+  var COLORS = { Alpha: "#ffd400", Bravo: "#6a5cff", Orange: "#ff7a1a", Blue: "#3b82f6", Pink: "#ff4fa3", Green: "#3ccf6e", Purple: "#9b5cff", Yellow: "#ffd400", Turquoise: "#20d6c7", Red: "#ff4d4d" };
 
   var S = { settings: { stations: 2, station_label: "Station", team_size: 4, best_of: 5, max_streak: 0 }, players: [], matches: [], loaded: false };
   var me = null;
