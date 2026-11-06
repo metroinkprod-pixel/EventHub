@@ -32,7 +32,7 @@ window.HUB = {
    activities: [
      { title: "Splatoon Tournament", main: true, text: "Find your wave on the schedule, each round's maps on the map list, and live matches on the station board.",
        links: [{ text: "Schedule", href: "/schedule/" }, { text: "Map list", href: "/maps/" }, { text: "Station board", href: "/stations/" }] },
-     { title: "Organized Scrims", text: "Organize a scrim on an open station. Check in and get matched up. Contact a T.O", links: [{ text: "Check in", href: "/matchmaker/" }] },
+     { title: "Pickup Games", text: "Organize a pickup scrim on an open station. Check in, get paired and matched up with others.", links: [{ text: "Check in", href: "/matchmaker/" }] },
      { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
      { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
      { title: "Art Show", text: "Check out the art on display throughout the venue." },
@@ -41,7 +41,7 @@ window.HUB = {
      // Scrims page (matchmaker): its name, and when it's open (event day, device's local time).
    //   opens / closes: "5:00 PM" (leave closes "" to stay open)   date: "2026-11-07" (optional: only open on that day)
    //   closedText: optional message under the opening time
-   scrims: { name: "Organized Scrims", opens: "5:00 PM", closes: "", date: "", closedText: "" },
+   scrims: { name: "Pickup Games ", opens: "5:00 PM", closes: "", date: "", closedText: "" },
   links: {
     stream:  "https://twitch.tv/GenGame",
     discord: "https://discord.gg/X5SWeJtX7h",
