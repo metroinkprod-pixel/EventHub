@@ -42,16 +42,31 @@
 .plist .prow input { flex: 1; }
 .mapgrid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .prevtable td { font-size: .85rem; }
+/* Front desk */
+.people { list-style: none; margin: 0; padding: 0; }
+.people li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); }
+.people li:first-child { border-top: 0; }
+.people li.in { background: color-mix(in srgb, var(--done) 8%, transparent); }
+.people .who { min-width: 0; }
+.people .who b { font-size: 1.08rem; overflow-wrap: anywhere; }
+.people .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 2px; font-size: .88rem; color: var(--muted); }
+.people .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.people .btn.good { padding: 9px 16px; font-size: 1rem; }
+.pill.comp { background: color-mix(in srgb, var(--t-accent) 16%, transparent); color: var(--t-accent); }
+.pill.spec { background: color-mix(in srgb, var(--t-accent-3) 16%, transparent); color: var(--t-accent-3); }
+.people li.editing { display: block; }
+@media (max-width: 520px) { .people li { grid-template-columns: 1fr; } .people .acts { justify-content: flex-start; } }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="wrap">
     <div class="title-row">
-      <h1 id="title">Tournament check-in</h1>
+      <h1 id="title">Check-in</h1>
     </div>
     <nav class="tabs" id="tabs" aria-label="Views">
-      <button data-tab="checkin">Check-in</button>
+      <button data-tab="desk">Front desk</button>
+      <button data-tab="checkin">Teams</button>
       <button data-tab="switch">Switch 2s</button>
       <button data-tab="setup">Import &amp; setup</button>
     </nav>
