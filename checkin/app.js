@@ -216,7 +216,7 @@
       [["", "Everyone"], ["competitor", "Competitors"], ["spectator", "Spectators"]].map(function (k) { return '<button class="chip" data-dkind="' + k[0] + '" aria-pressed="' + (view.dkind === k[0]) + '">' + k[1] + "</button>"; }).join("") +
       '</div><div class="chips">' + [["", "All"], ["out", "Not here"], ["in", "Checked in"]].map(function (k) { return '<button class="chip" data-dst="' + k[0] + '" aria-pressed="' + (view.dst === k[0]) + '">' + k[1] + "</button>"; }).join("") +
       "</div></div>" +
-      '<details><summary class="small"><b>Walk-up?</b> Add someone who isn’t on the list</summary><form class="bar" id="walkf" style="margin-top:8px">' +
+      '<details><summary class="small"><b>Walk-up?</b> Add someone who isn’t on the list</summary><form class="bar" id="walkf" data-draft style="margin-top:8px">' +
       '<label class="f" style="flex:2;min-width:10rem">Name<input type="text" name="name" required></label>' +
       '<label class="f">Type<select name="kind"><option value="spectator">Spectator</option><option value="competitor">Competitor</option></select></label>' +
       '<label class="f" style="flex:1;min-width:8rem">Team (competitors)<input type="text" name="team" list="teamnames"></label>' +
@@ -247,7 +247,7 @@
       O.guard(async function () {
         var r = await run("ops_attendee_save", { p: { name: nm, kind: el["kind"].value, team: el["team"].value.trim(), notes: el["notes"].value.trim(),
           switch2: el["switch2"].value, source: "walkup", checked_in: true } }, nm + " added and checked in");
-        if (r) { attendees.push(r.attendee); wf.reset(); draw(true); }
+        if (r) { attendees.push(r.attendee); var cur = $("walkf"); if (cur) cur.reset(); draw(true); }
       });
     };
     main.querySelectorAll("form.aeditf").forEach(function (f) {
