@@ -18,9 +18,6 @@ body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.5 var(-
 .hero .logo[hidden] { display: none; }
 .hero h1 { margin: 0; font: 800 clamp(2rem, 7vw, 3rem)/1.05 var(--t-display); color: var(--gold); letter-spacing: .01em; text-transform: uppercase; }
 .hero p { margin: .4rem 0 0; color: var(--muted); }
-.links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
-.links a { color: var(--muted); text-decoration: none; border: 1px solid var(--line); border-radius: var(--t-radius-sm); padding: 5px 14px; font-weight: 600; font-size: .9rem; }
-.links a:hover { color: var(--ink); border-color: var(--cyan); }
 main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; display: grid; gap: 1.8rem; }
 h2 { margin: 0 0 .7rem; font-family: var(--t-display); font-size: .95rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
 .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
@@ -35,6 +32,14 @@ h2 { margin: 0 0 .7rem; font-family: var(--t-display); font-size: .95rem; letter
 .card.staff { border-color: color-mix(in srgb, var(--t-warn) 30%, var(--t-line)); }
 .card.staff:hover { border-color: var(--staff); }
 .card[hidden], section[hidden], .also[hidden] { display: none; }
+/* Social links (same buttons as the schedule and map list) */
+.links { display: flex; flex-wrap: wrap; justify-content: center; gap: .4rem; margin-top: 1rem; }
+.link-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; font-weight: 600; text-decoration: none; color: var(--t-muted);
+  background: rgba(255,255,255,0.06); border: 1px solid color-mix(in srgb, var(--t-accent) 20%, transparent); border-radius: var(--t-radius-sm); padding: 5px 14px; }
+.link-pill svg { width: 14px; height: 14px; flex-shrink: 0; }
+.link-pill:hover { background: color-mix(in srgb, var(--t-accent) 15%, transparent); color: var(--t-ink); border-color: color-mix(in srgb, var(--t-accent) 40%, transparent); }
+.link-pill.twitch svg { color: #9146ff; } .link-pill.discord svg { color: #5865f2; } .link-pill.twitter svg { color: var(--t-ink); }
+.link-pill.bluesky svg { color: #1185fe; } .link-pill.startgg svg { color: var(--t-highlight); }
 /* Activities */
 .acts { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .act { display: grid; gap: 6px; align-content: start; background: var(--card); border: 1px solid var(--line); border-radius: var(--t-radius); padding: 16px; }
@@ -125,7 +130,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
         (a.text ? "<p>" + O.esc(a.text) + "</p>" : "") +
         (ls.length ? '<div class="btns">' + ls.map(function (l, i) {
           var ext = /^https?:/i.test(l.href);
-          return '<a class="go" href="' + O.esc(l.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(l.text || "Open") + "</a>";    
+          return '<a class="go" href="' + O.esc(l.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(l.text || "Open") + "</a>";
         }).join("") + "</div>" : "") + "</div>";
     }).join("");
     if (plain.length) {
@@ -148,9 +153,12 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
     logo.src = H.logo;
   }
   document.getElementById("date").textContent = H.eventDate || "";
-  var L = H.links || {}, names = { stream: "📺 Livestream", discord: "💬 Discord", startgg: "🏆 Bracket" };
-  document.getElementById("links").innerHTML = Object.keys(names).filter(function (k) { return L[k]; }).map(function (k) {
-    return '<a href="' + O.esc(L[k]) + '" target="_blank" rel="noopener">' + names[k] + "</a>";
+  // Social links: same buttons as the schedule and map list (from "links" in site-config.js)
+  var L = H.links || {};
+  var ICONS = {"twitch": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M11.64 5.93h1.43v4.28h-1.43m3.93-4.28H17v4.28h-1.43M7 2 3.43 5.57v12.86h4.28V22l3.58-3.57h2.85L20.57 12V2m-1.43 9.29-2.85 2.85h-2.86l-2.5 2.5v-2.5H7.71V3.43h11.43Z\"/></svg>", "discord": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M20.32 4.37a19.8 19.8 0 0 0-4.89-1.52.07.07 0 0 0-.08.04c-.21.38-.45.87-.61 1.26a18.27 18.27 0 0 0-5.48 0 12.6 12.6 0 0 0-.62-1.26.08.08 0 0 0-.08-.04c-1.7.29-3.34.8-4.89 1.52a.07.07 0 0 0-.03.03C.53 9.05-.32 13.58.1 18.06a.08.08 0 0 0 .03.06 19.9 19.9 0 0 0 6 3.03.08.08 0 0 0 .08-.03c.46-.63.87-1.3 1.23-2a.08.08 0 0 0-.04-.11 13.1 13.1 0 0 1-1.87-.89.08.08 0 0 1 0-.13c.13-.09.25-.19.37-.28a.07.07 0 0 1 .08 0c3.93 1.79 8.18 1.79 12.06 0a.07.07 0 0 1 .08 0c.12.1.24.19.37.28a.08.08 0 0 1 0 .13c-.6.35-1.22.65-1.87.89a.08.08 0 0 0-.04.11c.36.7.78 1.37 1.23 2a.08.08 0 0 0 .08.03 19.84 19.84 0 0 0 6.01-3.03.08.08 0 0 0 .03-.06c.5-5.18-.84-9.67-3.55-13.66a.06.06 0 0 0-.03-.03ZM8.02 15.33c-1.18 0-2.16-1.09-2.16-2.42 0-1.34.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.33-.96 2.42-2.16 2.42Zm7.97 0c-1.18 0-2.16-1.09-2.16-2.42 0-1.34.96-2.42 2.16-2.42 1.21 0 2.18 1.1 2.16 2.42 0 1.33-.95 2.42-2.16 2.42Z\"/></svg>", "twitter": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M18.9 2H22l-7.6 8.7L23.3 22H16.9l-5-6.5L6.1 22H3l8.1-9.3L2.9 2h6.6l4.5 6ZM17.7 20h1.7L8.4 3.9H6.6Z\"/></svg>", "bluesky": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 10.8C10.68 8.17 7.1 5.2 4.4 3.9c-.65-.31-1.3-.13-1.3.68 0 .5.32 4.09.5 4.68.62 2 2.85 2.68 4.88 2.4-3.53.51-4.14 3.34-2.29 5.06 2.9 2.7 4.19-.6 4.81-2.26.62 1.65 1.9 4.95 4.8 2.26 1.86-1.72 1.25-4.55-2.28-5.06 2.03.28 4.26-.4 4.88-2.4.18-.6.5-4.18.5-4.68 0-.81-.65-.99-1.3-.68-2.7 1.3-6.28 4.27-7.6 6.9Z\"/></svg>", "startgg": "<svg viewBox=\"0 0 24 24\" fill=\"currentColor\"><path d=\"M12 2 2 7v10l10 5 10-5V7L12 2Zm0 2.24 7.5 3.76-7.5 3.76L4.5 8 12 4.24ZM4 9.62l7 3.5v6.76l-7-3.5V9.62Zm9 10.26v-6.76l7-3.5v6.76l-7 3.5Z\"/></svg>"};
+  var SOCIAL = [["stream", "twitch", "Livestream"], ["discord", "discord", "Discord"], ["twitter", "twitter", "Twitter"], ["bluesky", "bluesky", "Bluesky"], ["startgg", "startgg", "Bracket"]];
+  document.getElementById("links").innerHTML = SOCIAL.filter(function (x) { return L[x[0]]; }).map(function (x) {
+    return '<a class="link-pill ' + x[1] + '" href="' + O.esc(L[x[0]]) + '" target="_blank" rel="noopener">' + ICONS[x[1]] + O.esc(x[2]) + "</a>";
   }).join("");
   var section = document.getElementById("staff"), timer = null;
   function sync() {
