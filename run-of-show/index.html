@@ -43,7 +43,9 @@ li.editing { display: block !important; background: var(--live-bg); }
 .editor .wide { grid-column: 1 / -1; }
 .editor .acts { grid-column: 1 / -1; display: flex; gap: 8px; flex-wrap: wrap; }
 .editor .acts .danger { margin-left: auto; }
-.addrow { display: grid; gap: 8px; grid-template-columns: 7.5rem 7.5rem 1fr 10rem auto; padding: 12px 16px; border-top: 1px solid var(--line); align-items: end; }
+.addrow { display: grid; gap: 8px; grid-template-columns: 8rem 8rem 10rem 1fr; padding: 12px 16px; border-top: 1px solid var(--line); align-items: end; }
+.addrow .task-in { grid-column: span 2; }
+.addrow .notes-in { grid-column: span 3; }
 .mapgrid { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .prevtable td { font-size: .85rem; }
 .floor figure { margin: 0; display: grid; gap: 8px; }
@@ -54,7 +56,7 @@ li.editing { display: block !important; background: var(--live-bg); }
   .list .time { grid-column: 2; }
   .list .body { grid-column: 1 / -1; grid-row: 2; padding-left: 32px; }
   .addrow { grid-template-columns: 1fr 1fr; }
-  .addrow .task-in, .addrow button { grid-column: 1 / -1; }
+  .addrow .task-in, .addrow .notes-in, .addrow button { grid-column: 1 / -1; }
 }
 </style>
 </head>
