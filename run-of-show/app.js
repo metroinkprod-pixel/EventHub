@@ -320,13 +320,36 @@
   }
 
   // ---------- floor plan ----------
-  // Image(s) in the repo, set in site-config.js:
+  // Images in the repo and/or live Google Sheets, set in site-config.js:
   //   floorplan: "/assets/floorplan.png"
-  //   or several: floorplan: [{ title: "Main hall", src: "/assets/floor-main.png" }, { title: "Side room", src: "/assets/floor-side.png" }]
+  //   or a list: floorplan: [
+  //     { title: "Floor plan", src: "/assets/floorplan.png" },
+  //     { title: "Console layout", sheet: "https://docs.google.com/spreadsheets/d/e/…/pubhtml?gid=…" }
+  //   ]
+  // For "sheet": in Google Sheets use File > Share > Publish to web > (that tab) > Web page > Publish,
+  // and paste the link. Edits in the sheet show up here (Google refreshes it every few minutes).
+  function sheetEmbed(url) {
+    try {
+      var u = new URL(url);
+      if (!/docs\.google\.com$/.test(u.hostname)) return "";
+      u.pathname = u.pathname.replace(/\/pub(html)?$/, "/pubhtml").replace(/\/(edit|htmlview).*$/, "/pubhtml");
+      ["single", "widget"].forEach(function (k) { u.searchParams.set(k, "true"); });
+      u.searchParams.set("headers", "false"); u.searchParams.set("chrome", "false");
+      u.searchParams.delete("output");
+      return u.toString();
+    } catch (e) { return ""; }
+  }
   function viewFloor() {
     var fp = (window.HUB && HUB.floorplan) || "/assets/floorplan.png";
-    var list = (Array.isArray(fp) ? fp : [{ title: "", src: fp }]).filter(function (x) { return x && x.src; });
-    main.innerHTML = '<section class="floor" style="display:grid;gap:16px">' + list.map(function (x, i) {
+    var list = (Array.isArray(fp) ? fp : [{ title: "", src: fp }]).filter(function (x) { return x && (x.src || x.sheet); });
+    main.innerHTML = '<section class="floor" style="display:grid;gap:22px">' + list.map(function (x, i) {
+      if (x.sheet) {
+        var emb = sheetEmbed(x.sheet);
+        if (!emb) return '<div class="notice"><b>' + esc(x.title || "Sheet") + ":</b> that link isn’t a published Google Sheet. Use File &gt; Share &gt; Publish to web &gt; Web page.</div>";
+        return '<figure>' + (x.title ? "<figcaption>" + esc(x.title) + "</figcaption>" : "") +
+          '<div class="sheetwrap"><iframe src="' + esc(emb) + '" title="' + esc(x.title || "Sheet") + '" loading="lazy"></iframe></div>' +
+          '<span class="small muted">Live from Google Sheets. <a href="' + esc(emb.replace("widget=true", "widget=false")) + '" target="_blank" rel="noopener" style="color:var(--t-accent)">Open full screen</a> to zoom in.</span></figure>';
+      }
       return '<figure>' + (x.title ? "<figcaption>" + esc(x.title) + "</figcaption>" : "") +
         '<a href="' + esc(x.src) + '" target="_blank" rel="noopener"><img src="' + esc(x.src) + '" alt="' + esc(x.title || "Floor plan") + '" data-i="' + i + '"></a>' +
         '<span class="small muted">Tap the image to open it full size and zoom in.</span></figure>';
