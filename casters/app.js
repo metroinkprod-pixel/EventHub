@@ -57,13 +57,13 @@
     var html = '<section class="panel follow"><label class="f" style="flex:1;min-width:14rem">Showing<select id="follow">' + opts + "</select></label>";
     if (view.follow === "pick") {
       var tOpts = function (cur) { return '<option value="">Choose a team</option>' + teams.map(function (t) { return '<option' + (t.name === cur ? " selected" : "") + ">" + esc(t.name) + "</option>"; }).join(""); };
-      html += '<label class="f" style="flex:1;min-width:12rem">Left team<select id="pickA">' + tOpts(view.pickA) + '</select></label>' +
-        '<label class="f" style="flex:1;min-width:12rem">Right team<select id="pickB">' + tOpts(view.pickB) + "</select></label>";
+      html += '<label class="f" style="flex:1;min-width:12rem">Alpha team<select id="pickA">' + tOpts(view.pickA) + '</select></label>' +
+        '<label class="f" style="flex:1;min-width:12rem">Bravo team<select id="pickB">' + tOpts(view.pickB) + "</select></label>";
     }
     html += "</section>";
 
     if (view.follow === "pick") {
-      html += '<div class="duo">' + card(view.pickA, "Left") + card(view.pickB, "Right") + "</div>";
+      html += '<div class="duo">' + card(view.pickA, "Alpha") + card(view.pickB, "Bravo") + "</div>";
     } else {
       var s = live.find(function (x) { return String(x.station) === String(view.follow); });
       if (!s) {
@@ -72,7 +72,7 @@
       } else {
         html += '<section class="panel matchbar"><div><div class="what">' + esc(s.phase) + " · " + esc(s.round) + '</div><div class="small muted">' + esc(stationLabel(s.station)) + "</div></div>" +
           '<div class="score">' + esc(s.team1.score) + " – " + esc(s.team2.score) + "</div></section>";
-        html += '<div class="duo">' + card(s.team1.name, "Left · " + s.team1.score + (s.team1.score === 1 ? " game" : " games"), s.team1.players) + card(s.team2.name, "Right · " + s.team2.score + (s.team2.score === 1 ? " game" : " games"), s.team2.players) + "</div>";
+        html += '<div class="duo">' + card(s.team1.name, "Alpha · " + s.team1.score + (s.team1.score === 1 ? " game" : " games"), s.team1.players) + card(s.team2.name, "Bravo · " + s.team2.score + (s.team2.score === 1 ? " game" : " games"), s.team2.players) + "</div>";
       }
     }
     main.innerHTML = html;
