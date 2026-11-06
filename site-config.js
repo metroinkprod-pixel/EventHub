@@ -32,7 +32,10 @@ window.HUB = {
   // Opening hours are set by staff on that page (Staff > Settings > Opening hours);
   // the times here are only a fallback.
   scrims: { name: "Organized Pickup Games", opens: "", closes: "", date: "", closedText: "" },
-
+   floorplan: [
+     { title: "Floor plan", src: "/assets/floorplan.png" },
+     { title: "Console layout", sheet: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQVdfPsFDMS_Ita-AdyocblmIt0RJ7_Xedz4BkzBFqzxxvEKj951B6oQBr4f5QRtHEjPtwuMAb7Phpw/pubhtml?gid=1080238690&single=true" }
+   ],
   // "Today's activities" on the hub page.
   //   title (required), text, when, main: true (the main event card, shown first), tag (small label)
   //   links: [{ text, href }, ...]  buttons
