@@ -122,7 +122,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
     return list.filter(function (l) { return l && l.href && /^(https?:\/\/|\/)/i.test(l.href); });
   }
   // Cards linking to the scrims page follow its opening hours ("scrims" in site-config.js).
-  function isScrims(a) { return window.HubScrims && HubScrims.configured && linksOf(a).some(function (l) { return /^\/matchmaker\/?(#.*)?$/.test(l.href); }); }
+  function isScrims(a) { return window.HubScrims && HubScrims.configured() && linksOf(a).some(function (l) { return /^\/matchmaker\/?(#.*)?$/.test(l.href); }); }
   function drawActs() {
     var withLinks = acts.filter(function (a) { return a.main || linksOf(a).length; });
     withLinks.sort(function (x, y) { return (y.main ? 1 : 0) - (x.main ? 1 : 0); });
@@ -150,7 +150,10 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
     document.getElementById("activities").hidden = false;
     document.getElementById("everyone").hidden = true;   // the main event card links to the schedule, maps and stations instead
   }
-  if (acts.length) { drawActs(); setInterval(drawActs, 30000); }
+  if (acts.length) {
+    drawActs(); setInterval(drawActs, 30000);
+    if (window.HubScrims) { HubScrims.onChange(drawActs); HubScrims.loadFromMatchmaker(); setInterval(HubScrims.loadFromMatchmaker, 120000); }
+  }
 
   // Event logo (same one as the schedule and map list: "logo" in site-config.js)
   var logo = document.getElementById("logo");
