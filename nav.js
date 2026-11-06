@@ -15,6 +15,7 @@
     { href: "/run-of-show/", label: "Run of show", staff: "staff" },
     { href: "/run-of-show/?view=mine", label: "My shifts", staff: "volunteer" },
     { href: "/checkin/",     label: "Check-in", staff: "volunteer" },
+    { href: "/casters/",     label: "Casters", staff: "volunteer" },
     { href: "/pickup/#staff", label: SCRIMS + " staff", staff: "staff" }
   ];
   var RANK = { volunteer: 1, staff: 2, owner: 3 }, NAMES = { volunteer: "Volunteer", staff: "Staff", owner: "Owner" };
