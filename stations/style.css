@@ -352,3 +352,23 @@ body {
 .event-name { letter-spacing: .02em; }
 .team-name { letter-spacing: .01em; }
 .station-bullet { color: var(--t-highlight); }
+
+
+/* Bracket link (footer, right side) */
+.bracket-link {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--t-muted);
+  text-decoration: none;
+  border: 1px solid var(--t-line);
+  border-radius: var(--t-radius-sm);
+  padding: 6px 16px;
+  white-space: nowrap;
+}
+.bracket-link:hover { color: var(--t-ink); border-color: var(--t-accent); }
+.bracket-link[hidden] { display: none; }
+@media (max-width: 760px) {
+  .bracket-link { font-size: 13px; padding: 3px 10px; margin-left: auto; }
+}
