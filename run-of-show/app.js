@@ -95,8 +95,8 @@
       var res = await O.rpc("ops_ros_save", { p_row: fields });
       if (!rows.some(function (x) { return x.id === res.row.id; })) rows.push(res.row);
       draw(true);
-      return true;
-    } catch (err) { O.toast(err.message); return false; }
+      return res.row;
+    } catch (err) { O.toast(err.message); return null; }
   }
   async function del(r) {
     rows = rows.filter(function (x) { return x.id !== r.id; }); draw(true);
@@ -221,8 +221,12 @@
 
     html += '<section class="panel flush"><header><h2>Add a block</h2></header><form class="addrow" id="addf">' +
       '<label class="f">Start<input type="time" name="start"></label><label class="f">End<input type="time" name="end"></label>' +
+      '<label class="f">When<select name="section"><option value="day">Event day</option><option value="before">Before the day</option><option value="after">After the event</option></select></label>' +
       '<label class="f task-in">Task<input type="text" name="task" placeholder="What needs doing" required></label>' +
-      '<label class="f">Owner<input type="text" name="owner" list="ppl"></label><button class="btn primary">Add</button></form></section>';
+      '<label class="f">Category<input type="text" name="category" list="cats" placeholder="e.g. Tournament"></label>' +
+      '<label class="f">Owner(s)<input type="text" name="owner" list="ppl" placeholder="e.g. Deed / Law"></label>' +
+      '<label class="f notes-in">Notes<input type="text" name="notes"></label>' +
+      '<button class="btn primary">Add block</button></form></section>';
 
     var groups = [], cur = null;
     list.forEach(function (r) {
@@ -245,10 +249,23 @@
     $("fo").onclick = function () { view.needsOwner = !view.needsOwner; draw(true); };
     $("addf").onsubmit = function (e) {
       e.preventDefault();
-      var f = e.target, s = O.parseTime(f.elements["start"].value), en = O.parseTime(f.elements["end"].value);
-      var fields = { task: f.elements["task"].value.trim(), owner: f.elements["owner"].value.trim(), start_min: s, end_min: en, section: s == null ? "before" : "day", added: true };
-      if (!fields.task) return;
-      O.guard(async function () { if (await addRow(fields)) f.reset(); });
+      var f = e.target, el = f.elements, s = O.parseTime(el["start"].value), en = O.parseTime(el["end"].value);
+      var fields = { task: el["task"].value.trim(), category: el["category"].value.trim(), owner: el["owner"].value.trim(), notes: el["notes"].value.trim(),
+                     start_min: s, end_min: en, section: el["section"].value || "day", added: true };
+      if (!fields.task) { O.toast("Add a task description first."); return; }
+      if (s == null && en != null) { O.toast("Set a start time too (or clear the end time)."); return; }
+      if (s != null && en != null && en <= s) { O.toast("The end time is before the start time."); return; }
+      O.guard(async function () {
+        var row = await addRow(fields);
+        if (!row) return;
+        f.reset();
+        // Make sure the new block is visible, then point at it
+        view.q = ""; view.person = ""; view.category = ""; view.needsOwner = false; view.hideDone = false;
+        draw(true);
+        O.toast("Added “" + row.task + "” " + (row.start_min != null ? "at " + fmt(row.start_min) : row.section === "after" ? "to After the event" : row.section === "before" ? "to Before the day" : "to the event day"));
+        var li = document.getElementById("r-" + row.id);
+        if (li) { li.scrollIntoView({ behavior: "smooth", block: "center" }); li.style.transition = "background 1.2s"; li.style.background = "var(--flag-bg)"; setTimeout(function () { li.style.background = ""; }, 1600); }
+      });
     };
     main.querySelectorAll("form.editor").forEach(function (f) {
       f.onsubmit = function (e) {
