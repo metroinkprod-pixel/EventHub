@@ -2,46 +2,52 @@
 //  EVENT HUB SETTINGS: the one file to edit for each event.
 // ===================================================================
 window.HUB = {
-  eventName: "Big Dapple",                       // shown on the hub and staff tools
-  eventDate: "November 7th, 2026",                                // e.g. "Saturday, Dec 5"
+  eventName: "Big Dapple",                      // shown in footers and on the staff tools
+  shortName: "Big Dapple",                      // page titles: "Big Dapple Schedule", "Big Dapple Event Hub", ...
+  eventDate: "November 7th, 2026",
   location: "OSNYC - Chinatown",
   logo: "/assets/EventLogo.png",
-  theme: "halloween",      // or "gridlock", "winter", "neon"
-  themeColors: {},         // optional tweaks, e.g. { accent: "#ff7a1a", highlight: "#ffd23f" }
+  theme: "halloween",                           // or "gridlock", "winter", "neon"
+  themeColors: {},                              // optional tweaks, e.g. { accent: "#ff7a1a", highlight: "#ffd23f" }
+
+  // Public schedule from a Google Sheet (File > Share > Publish to web > CSV)
   schedule: {
     sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTxJHWk7ezAlQqyBteElG9YFFL3Ut_napJK-PW6Mjg4NeHvcoPdkFYEg18lAncZL8Fq07A_sGbmVXX4/pub?gid=1526195846&single=true&output=csv",
-    footnote: "Schedule is subject to bracket performance. Times Times assume every map in a set is played."
+    footnote: "Schedule is subject to bracket performance. Times assume every map in a set is played."
   },
-         // Map list from a Google Sheet (same "Publish to web" CSV steps). Leave "" to use maps/index.html as written.
-   maps: {
-     sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRd78H5aMviESTcSKAd4wxECqMh390r7u02SrWPDAadQS6U4ONQX-n3tONb1G7iGw6OYzca4wb8wXuC/pub?gid=1656499915&single=true&output=csv"
-   },
+
+  // Map list from a Google Sheet (same "Publish to web" CSV steps). Leave "" to use maps/index.html as written.
+  maps: {
+    sheetCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vRd78H5aMviESTcSKAd4wxECqMh390r7u02SrWPDAadQS6U4ONQX-n3tONb1G7iGw6OYzca4wb8wXuC/pub?gid=1656499915&single=true&output=csv"
+  },
+
   // Supabase project for Run of Show + Check-in (NOT the matchmaker's project).
-  // Supabase > Project Settings > API: Project URL and the anon / publishable key.
-  // The anon key is meant to be public; edits are protected by the staff PIN.
+  // The anon key is meant to be public; edits are protected by the PINs.
   ops: {
     SUPABASE_URL: "https://vciynxamtqfimsdgrkli.supabase.co",
     SUPABASE_ANON_KEY: "sb_publishable_LzIJLHgEmD04ouXRw0VO3w_n5wlaxBT"
   },
- // "Today's activities" on the hub page. Remove the list (or leave it empty) to hide the section.
- //   title (required), text, when, link, linkText, main: true (marks the main event), tag (small label)
-   // "Today's activities" on the hub page (replaces the plain page links when set).
-   //   title (required), text, when, main: true (the main event card, shown first), tag (small label)
-   //   links: [{ text, href }, ...]  buttons; the first one is the bold one
-   //   Activities without links are listed in a short "Also today" box underneath.
-   activities: [
-     { title: "Splatoon Tournament", main: true, text: "Find your wave on the schedule, each round's maps on the map list, and live matches on the station board.",
-       links: [{ text: "Schedule", href: "/schedule/" }, { text: "Map list", href: "/maps/" }, { text: "Station board", href: "/stations/" }] },
-     { title: "Pickup Games", text: "Organize a pickup scrim on an open station. Check in, get paired and matched up with others.", links: [{ text: "Check in", href: "/matchmaker/" }] },
-     { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
-     { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
-     { title: "Art Show", text: "Check out the art on display throughout the venue." },
-     { title: "Merch Desk", text: "Shirts, stickers and more past the stage area." }
-   ],  // Links shown on the hub home page. Leave a link "" to hide it.
-     // Scrims page (matchmaker): its name, and when it's open (event day, device's local time).
-   //   opens / closes: "5:00 PM" (leave closes "" to stay open)   date: "2026-11-07" (optional: only open on that day)
-   //   closedText: optional message under the opening time
-   scrims: { name: "Pickup Games ", opens: "5:00 PM", closes: "", date: "", closedText: "" },
+
+  // Pickup games page (/matchmaker/): its name in the menu and tab.
+  // Opening hours are set by staff on that page (Staff > Settings > Opening hours);
+  // the times here are only a fallback.
+  scrims: { name: "Organized Pickup Games", opens: "", closes: "", date: "", closedText: "" },
+
+  // "Today's activities" on the hub page.
+  //   title (required), text, when, main: true (the main event card, shown first), tag (small label)
+  //   links: [{ text, href }, ...]  buttons
+  //   Activities without links are listed in a short "Also today" box underneath.
+  activities: [
+    { title: "Splatoon Tournament", main: true, text: "Find your wave on the schedule, each round's maps on the map list, and live matches on the station board.",
+      links: [{ text: "Schedule", href: "/schedule/" }, { text: "Map list", href: "/maps/" }, { text: "Station board", href: "/stations/" }] },
+    { title: "Organized Pickup Games", text: "Organize a pickup scrim on an open station. Check in, get paired and matched up with others.", links: [{ text: "Check in", href: "/matchmaker/" }] },
+    { title: "Costume Contest", text: "Submit your costume and vote for your favorites.", links: [{ text: "Enter or vote", href: "https://pollunit.com/polls/8a2HTqpgBqM5LnnRzhO8AA" }] },
+    { title: "Fantasy Brackets", text: "Pick up a fantasy bracket at the T.O. desk." },
+    { title: "Art Show", text: "Check out the art on display throughout the venue." },
+    { title: "Merch Desk", text: "Shirts, stickers and more past the stage area." }
+  ],
+
+  // Social / link buttons on the hub, schedule and map list. Leave a link "" to hide it.
   links: {
     stream:  "https://twitch.tv/GenGame",
     discord: "https://discord.gg/X5SWeJtX7h",
