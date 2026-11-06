@@ -83,7 +83,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
       <a class="card" href="/schedule/"><span class="ic">🗓️</span><b>Schedule</b><span>When everything happens</span></a>
       <a class="card" href="/maps/"><span class="ic">🗺️</span><b>Map list</b><span>Maps and modes by round</span></a>
       <a class="card" href="/stations/"><span class="ic">📺</span><b>Station board</b><span>Live matches and scores from start.gg</span></a>
-      <a class="card" href="/matchmaker/"><span class="ic">🎮</span><b>Free play</b><span>Check in for scrims on open stations</span></a>
+      <a class="card" href="/pickup/"><span class="ic">🎮</span><b>Free play</b><span>Check in for scrims on open stations</span></a>
     </div>
   </section>
   <section id="activities" hidden>
@@ -97,7 +97,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
       <a class="card staff" data-need="staff" href="/run-of-show/"><span class="ic">⏱️</span><b>Run of show</b><span id="ros-peek">What’s happening now and who’s on it</span></a>
       <a class="card staff" data-need="volunteer" href="/run-of-show/?view=mine"><span class="ic">🙋</span><b>My shifts</b><span>Just your blocks for the day</span></a>
       <a class="card staff" data-need="volunteer" href="/checkin/"><span class="ic">✅</span><b>Tournament check-in</b><span id="ci-peek">Teams, players and Switch 2s</span></a>
-      <a class="card staff" data-need="staff" href="/matchmaker/#staff"><span class="ic">🔀</span><b>Free play (staff)</b><span>Start matches, record scores</span></a>
+      <a class="card staff" data-need="staff" href="/pickup/#staff"><span class="ic">🔀</span><b>Free play (staff)</b><span>Start matches, record scores</span></a>
     </div>
   </section>
 </main>
@@ -122,7 +122,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
     return list.filter(function (l) { return l && l.href && /^(https?:\/\/|\/)/i.test(l.href); });
   }
   // Cards linking to the scrims page follow its opening hours ("scrims" in site-config.js).
-  function isScrims(a) { return window.HubScrims && HubScrims.configured() && linksOf(a).some(function (l) { return /^\/matchmaker\/?(#.*)?$/.test(l.href); }); }
+  function isScrims(a) { return window.HubScrims && HubScrims.configured() && linksOf(a).some(function (l) { return /^\/(matchmaker|pickup)\/?(#.*)?$/.test(l.href); }); }
   function drawActs() {
     var withLinks = acts.filter(function (a) { return a.main || linksOf(a).length; });
     withLinks.sort(function (x, y) { return (y.main ? 1 : 0) - (x.main ? 1 : 0); });
@@ -136,7 +136,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
         (a.text ? "<p>" + O.esc(a.text) + "</p>" : "") +
         (ls.length ? '<div class="btns">' + ls.map(function (l, i) {
           var ext = /^https?:/i.test(l.href);
-          var shut = st && !st.open && /^\/matchmaker/.test(l.href);
+          var shut = st && !st.open && /^\/(matchmaker|pickup)/.test(l.href);
           return '<a class="go' + (shut ? " closed" : "") + '" href="' + O.esc(l.href) + '"' + (ext ? ' target="_blank" rel="noopener"' : "") + ">" + O.esc(shut ? st.label : (l.text || "Open")) + "</a>";
         }).join("") + "</div>" : "") + "</div>";
     }).join("");
@@ -152,7 +152,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
   }
   if (acts.length) {
     drawActs(); setInterval(drawActs, 30000);
-    if (window.HubScrims) { HubScrims.onChange(drawActs); HubScrims.loadFromMatchmaker(); setInterval(HubScrims.loadFromMatchmaker, 120000); }
+    if (window.HubScrims) { HubScrims.onChange(drawActs); HubScrims.load(); setInterval(HubScrims.load, 120000); }
   }
 
   // Event logo (same one as the schedule and map list: "logo" in site-config.js)

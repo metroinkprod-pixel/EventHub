@@ -11,11 +11,11 @@
     { href: "/schedule/",    label: "Schedule" },
     { href: "/maps/",        label: "Maps" },
     { href: "/stations/",    label: "Stations" },
-    { href: "/matchmaker/",  label: SCRIMS },
+    { href: "/pickup/",      label: SCRIMS },
     { href: "/run-of-show/", label: "Run of show", staff: "staff" },
     { href: "/run-of-show/?view=mine", label: "My shifts", staff: "volunteer" },
     { href: "/checkin/",     label: "Check-in", staff: "volunteer" },
-    { href: "/matchmaker/#staff", label: SCRIMS + " staff", staff: "staff" }
+    { href: "/pickup/#staff", label: SCRIMS + " staff", staff: "staff" }
   ];
   var RANK = { volunteer: 1, staff: 2, owner: 3 }, NAMES = { volunteer: "Volunteer", staff: "Staff", owner: "Owner" };
   function get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }

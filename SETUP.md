@@ -123,6 +123,19 @@ There are three PINs. The owner sets them in **Run of show → Tools → PINs**.
 - Staff and volunteers on shared devices should tap **Lock** when they're done.
 - Staff pages check for changes every 4 seconds, because private data can't use Supabase's realtime feed.
 
+## Organized pickup games (`/pickup/`)
+
+Random teams, winner stays on. It runs itself:
+
+1. Players open `/pickup/`, enter a name and weapon, and get in line (no account; their phone remembers them).
+2. When a station is free and enough people are in line, the longest-waiting players are shuffled into two random teams and sent to the station.
+3. Anyone in the match reports the result on their phone (best of 5 by default).
+4. Losers go to the back of the line. Winners stay on and the next group from the line challenges them.
+
+**Setup:** run `supabase/pickup-setup.sql` in the same Supabase project as the run of show (after `ops-setup.sql`). Staff log in with the hub PIN (staff level) and open **Staff** on the page to set stations, team size, best of, an optional cap on wins in a row, and opening hours. They can also cancel a match, record a result, or remove a player. The owner can reset.
+
+The old `/matchmaker/` page now forwards to `/pickup/`, so old links and QR codes still work. The matchmaker's separate Supabase project is no longer used.
+
 ## Mode icons (map list)
 
 Put square icons (transparent background) in `assets/modes/`: `sz.png`, `tc.png`, `rm.png`, `cb.png`, `tw.png`. Missing icons show the text label instead. For .svg or .webp, set `maps: { iconType: "svg" }` in `site-config.js`.

@@ -24,7 +24,7 @@
   // No shortName? Use eventName without a trailing "Event Hub" / "Hub" ("Big Dapple Event Hub" -> "Big Dapple").
   var short = (H.shortName || String(H.eventName || "Event").replace(/\s*[-–—:|·]?\s*(event\s*)?hub\s*$/i, "")).trim() || "Event";
   var PAGES = { "/": short + " Event Hub", "/schedule/": short + " Schedule", "/maps/": short + " Map List",
-                "/stations/": short + " Stations", "/matchmaker/": short + " " + ((H.scrims && H.scrims.name) || "Free Play"), "/run-of-show/": short + " Run of Show",
+                "/stations/": short + " Stations", "/matchmaker/": short + " " + ((H.scrims && H.scrims.name) || "Free Play"), "/pickup/": short + " " + ((H.scrims && H.scrims.name) || "Pickup Games"), "/run-of-show/": short + " Run of Show",
                 "/checkin/": short + " Check-in" };
   var p = location.pathname.replace(/index\.html$/, "");
   if (p.length > 1 && !p.endsWith("/")) p += "/";
