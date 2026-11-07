@@ -7,9 +7,10 @@ const QUERY = `
   query EventSets($eventId: ID!) {
     event(id: $eventId) {
       name
-      sets(perPage: 20, filters: { state: [1, 2] }) {
+      sets(perPage: 40, filters: { state: [1, 2] }) {
         nodes {
           id
+          state
           station { id number }
           fullRoundText
           phaseGroup { phase { name phaseOrder } }
@@ -69,6 +70,7 @@ module.exports = async function (req, res) {
         id: s.id,
         station: s.station ? (s.station.number === mainStation ? 'M' : s.station.number) : null,
         round: s.fullRoundText,
+        state: s.state === 2 ? 'in_progress' : 'called',     // used by the Pi auto-recorders
         phase: phase,
         phaseStyle: getPhaseStyle(phase),
         phaseOrder: s.phaseGroup.phase.phaseOrder || 0,
