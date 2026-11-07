@@ -352,6 +352,7 @@ body {
 .event-name { letter-spacing: .02em; }
 .team-name { letter-spacing: .01em; }
 .station-bullet { color: var(--t-highlight); }
+.station-bullet { color: #ffffff; }
 
 
 /* Bracket link (footer, right side) */
