@@ -16,4 +16,5 @@ api/                  Vercel server functions for start.gg (bracket, roster)
 data/roster.json      Backup roster if start.gg can't be reached
 scripts/              fetch-roster.js (optional)
 supabase/             SQL for the staff database
+node --env-file=.env scripts/fetch-sets.js in local folder to output set data for a tournament into a csv file for analysis.
 ```
