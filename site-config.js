@@ -7,7 +7,7 @@ window.HUB = {
   eventDate: "November 7th, 2026",
   location: "OSNYC - Chinatown",
   logo: "/assets/EventLogo.png",
-  theme: "halloween",                           // or "gridlock", "winter", "neon"
+  theme: "winter",                           // or "gridlock", "winter", "neon" ", "halloween"
   themeColors: {},                              // optional tweaks, e.g. { accent: "#ff7a1a", highlight: "#ffd23f" }
 
   // Public schedule from a Google Sheet (File > Share > Publish to web > CSV)
