@@ -4,7 +4,7 @@
 window.HUB = {
   eventName: "Big Dapple",                      // shown in footers and on the staff tools
   shortName: "Big Dapple",                      // page titles: "Big Dapple Schedule", "Big Dapple Event Hub", ...
-  eventDate: "November 7th, 2026",
+  eventDate: "TBD 2027",
   location: "OSNYC - Chinatown",
   logo: "/assets/EventLogo.png",
   theme: "winter",                           // or "gridlock", "winter", "neon" ", "halloween"
